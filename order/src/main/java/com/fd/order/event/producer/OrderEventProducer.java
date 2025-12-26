@@ -1,0 +1,22 @@
+package com.fd.order.event.producer;
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+
+import com.fd.order.entity.Order;
+import com.fd.order.entity.OrderEvent;
+
+@Component
+public class OrderEventProducer {
+
+    private final KafkaTemplate<String, OrderEvent> kafkaTemplate = null;
+
+    public void publishOrderCreated(Order order) {
+        OrderEvent event = new OrderEvent(
+                order.getId(),
+                order.getTotalAmount(),
+                order.getStatus().name()
+        );
+        kafkaTemplate.send("order-events", event);
+    }
+}
