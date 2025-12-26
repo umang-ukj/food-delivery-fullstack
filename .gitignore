@@ -1,0 +1,20 @@
+# Maven
+target/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Env files
+.env
+
+# Node (later frontend)
+node_modules/
+
+# Eclipse / STS
+.metadata/
