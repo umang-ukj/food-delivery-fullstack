@@ -1,6 +1,5 @@
 package com.fd.order.event.consumer;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +11,13 @@ import com.fd.order.repository.OrderRepository;
 @Component
 public class PaymentEventConsumer {
 
-	
-    private final OrderRepository repository = null;
+    private final OrderRepository repository;
 
-    @KafkaListener(topics = "payment-events")
+    public PaymentEventConsumer(OrderRepository repository) {
+		this.repository = repository;
+	}
+
+	@KafkaListener(topics = "payment-events")
     public void handlePaymentEvent(PaymentEvent event) {
         Order order = repository.findById(event.getOrderId())
                 .orElseThrow();

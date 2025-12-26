@@ -10,13 +10,14 @@ Microservices-based food delivery platform built using Java and Spring Boot.
 - JWT Authentication
 - MongoDB
 - MySQL
-- Kafka (upcoming)
+- Kafka 
 
 ## Services
 - API Gateway
 - User Service
 - Restaurant Service
-- Order Service (in progress)
+- Order Service 
+-payment service
 
 ## How to Run
 1. Start Eureka Server
