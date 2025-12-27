@@ -17,10 +17,19 @@ Microservices-based food delivery platform built using Java and Spring Boot.
 - User Service
 - Restaurant Service
 - Order Service 
--payment service
+- payment service
+- delivery service
 
 ## How to Run
 1. Start Eureka Server
 2. Start API Gateway
 3. Start individual services
 
+## flowend to end flow
+User -> Order Service (SYNC)
+Order Service -> Kafka (ORDER_CREATED)
+Payment Service -> Kafka (PAYMENT_SUCCESS)
+Order Service -> Kafka (PAID)
+Delivery Service -> Kafka (OUT_FOR_DELIVERY)
+Delivery Service -> Kafka (DELIVERED)
+Order Service updates final state
