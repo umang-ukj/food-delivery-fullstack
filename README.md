@@ -25,11 +25,12 @@ Microservices-based food delivery platform built using Java and Spring Boot.
 2. Start API Gateway
 3. Start individual services
 
-## flowend to end flow
-User -> Order Service (SYNC)
-Order Service -> Kafka (ORDER_CREATED)
-Payment Service -> Kafka (PAYMENT_SUCCESS)
-Order Service -> Kafka (PAID)
-Delivery Service -> Kafka (OUT_FOR_DELIVERY)
-Delivery Service -> Kafka (DELIVERED)
-Order Service updates final state
+## end to end flow
+1) Client -> Order Service (SYNC)
+2) Order Service -> order-events (CREATED)
+3) Payment Service -> payment-events (SUCCESS)
+4) Order Service -> status = PAID
+5) Delivery Service -> delivery-events (OUT_FOR_DELIVERY)
+6) Order Service -> status = OUT_FOR_DELIVERY
+7) Delivery Service -> delivery-events (DELIVERED)
+8) Order Service -> status = DELIVERED

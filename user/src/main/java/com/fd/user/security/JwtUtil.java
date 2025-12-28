@@ -13,7 +13,7 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-    private final String SECRET = "secret-key";
+    private final String SECRET = "food-delivery-fullstack-project-secret-key";
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
@@ -24,7 +24,7 @@ public class JwtUtil {
                 .setExpiration(
                         new Date(System.currentTimeMillis() + 60 * 60 * 1000)
                 )
-                .signWith(key, SignatureAlgorithm.HS256) 
+                .signWith(key)
                 .compact();
     }
 }

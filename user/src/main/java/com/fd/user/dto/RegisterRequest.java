@@ -2,17 +2,43 @@ package com.fd.user.dto;
 
 import org.jspecify.annotations.Nullable;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 //need to add code here
 public class RegisterRequest {
 
-	public @Nullable CharSequence getPassword() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	    @Email(message = "Invalid email format")
+	    @NotBlank(message = "Email is required")
+	    private String email;
 
-	public String getEmail() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	    @NotBlank(message = "Password is required")
+	    @Size(min = 6, message = "Password must be at least 6 characters")
+	    private String password;
+
+	    public RegisterRequest() {
+	    }
+
+	    public RegisterRequest(String email, String password) {
+	        this.email = email;
+	        this.password = password;
+	    }
+
+	    public String getEmail() {
+	        return email;
+	    }
+
+	    public void setEmail(String email) {
+	        this.email = email;
+	    }
+
+	    public String getPassword() {
+	        return password;
+	    }
+
+	    public void setPassword(String password) {
+	        this.password = password;
+	    }
 
 }

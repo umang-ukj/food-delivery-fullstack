@@ -2,20 +2,42 @@ package com.fd.user.dto;
 
 import org.jspecify.annotations.Nullable;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-//need to add code here
+
 
 public class LoginRequest {
 
-	public String getEmail() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
+    private String email;
 
-	 @Nullable
-	public CharSequence getPassword() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @NotBlank(message = "Password is required")
+    private String password;
 
+    public LoginRequest() {
+    }
+
+    public LoginRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
+

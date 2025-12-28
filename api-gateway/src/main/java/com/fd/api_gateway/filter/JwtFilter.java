@@ -6,6 +6,7 @@ import javax.crypto.SecretKey;
 
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,19 +15,28 @@ import org.springframework.web.server.ServerWebExchange;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Mono;
 //centralized jwt validation
 //if every MS validates jwt, it results in dupliation.
 
 @Component
+@Order(-1)
 public class JwtFilter implements GlobalFilter {
 
     private static final String SECRET =
-            "secret-key";
+            "food-delivery-fullstack-project-secret-key";
 
     private final SecretKey key =
             Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
+    //testing purpose
+    @PostConstruct
+    public void init() {
+        System.out.println(" JwtFilter REGISTERED");
+    }
+    
+    
     //ServerWebExchange- wraps incoming http request and response
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
@@ -54,7 +64,9 @@ public class JwtFilter implements GlobalFilter {
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token);
+            System.out.println("JWT VALIDATED SUCCESSFULLY"); // 
         } catch (JwtException e) {
+            e.printStackTrace(); // 
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }

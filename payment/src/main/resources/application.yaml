@@ -6,7 +6,7 @@ spring:
     name: payment
 
   datasource:
-    url: jdbc:mysql://localhost:3306/paymentdb
+    url: jdbc:mysql://localhost:3307/paymentdb
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver

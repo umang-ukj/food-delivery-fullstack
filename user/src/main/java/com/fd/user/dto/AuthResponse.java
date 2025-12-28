@@ -1,12 +1,22 @@
 package com.fd.user.dto;
 
 
-//need to add code here
-
 public class AuthResponse {
 
-	public AuthResponse(String token) {
-		// TODO Auto-generated constructor stub
-	}
+    private String token;
 
+    public AuthResponse() {
+    }
+
+    public AuthResponse(String token) {
+        this.token = token;
+    }
+
+    public String getToken() {   // 🔥 REQUIRED
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }
