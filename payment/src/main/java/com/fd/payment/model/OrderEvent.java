@@ -28,5 +28,14 @@ public class OrderEvent {
 	public String toString() {
 		return "OrderEvent [orderId=" + orderId + ", amount=" + amount + ", status=" + status + "]";
 	}
+	public OrderEvent(Long orderId, Double amount, String status) {
+		super();
+		this.orderId = orderId;
+		this.amount = amount;
+		this.status = status;
+	}
+	public OrderEvent() {
+		super();
+	}
     
 }

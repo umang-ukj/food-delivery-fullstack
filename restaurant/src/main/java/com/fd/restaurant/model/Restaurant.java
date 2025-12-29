@@ -1,5 +1,6 @@
 package com.fd.restaurant.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -24,5 +25,6 @@ public class Restaurant {
     private String location;
     private boolean open;
 
-    private List<MenuItem> menu;
+    private List<MenuItem> menu = new ArrayList<>();
+
 }

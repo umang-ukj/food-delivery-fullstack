@@ -13,7 +13,7 @@ public class RouteConfig {
         return builder.routes()
             .route("user", r -> r.path("/auth/**")
                 .uri("lb://user"))
-            .route("order", r -> r.path("/orders/**")
+            .route("order", r -> r.path("/orders","/orders/**")
                 .uri("lb://order"))
             .route("restaurant", r -> r.path("/restaurants","/restaurants/**")
                     .uri("lb://restaurant"))

@@ -33,5 +33,8 @@ public class OrderEvent {
 		this.amount = amount;
 		this.status = status;
 	}
+	public OrderEvent() {
+		super();
+	}
 	
 }

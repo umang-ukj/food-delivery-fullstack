@@ -9,9 +9,14 @@ import com.fd.order.entity.OrderEvent;
 @Component
 public class OrderEventProducer {
 
-    private final KafkaTemplate<String, OrderEvent> kafkaTemplate = null;
+    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
-    public void publishOrderCreated(Order order) {
+    public OrderEventProducer(KafkaTemplate<String, OrderEvent> kafkaTemplate) {
+		super();
+		this.kafkaTemplate = kafkaTemplate;
+	}
+
+	public void publishOrderCreated(Order order) {
         OrderEvent event = new OrderEvent(
                 order.getId(),
                 order.getTotalAmount(),

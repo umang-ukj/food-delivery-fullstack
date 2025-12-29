@@ -4,6 +4,9 @@ public class DeliveryEvent {
     private Long orderId;
     private String status; // OUT_FOR_DELIVERY | DELIVERED
     
+	public DeliveryEvent() {
+		super();
+	}
 	public Long getOrderId() {
 		return orderId;
 	}

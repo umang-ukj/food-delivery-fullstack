@@ -9,9 +9,14 @@ import com.fd.payment.model.PaymentEvent;
 @Component
 public class PaymentEventProducer {
 
-    private final KafkaTemplate<String, PaymentEvent> kafkaTemplate = null;
+    private final KafkaTemplate<String, PaymentEvent> kafkaTemplate;
 
-    public void sendPaymentResult(Long orderId, String status) {
+    public PaymentEventProducer(KafkaTemplate<String, PaymentEvent> kafkaTemplate) {
+		super();
+		this.kafkaTemplate = kafkaTemplate;
+	}
+
+	public void sendPaymentResult(Long orderId, String status) {
         PaymentEvent event = new PaymentEvent(orderId, status);
         kafkaTemplate.send("payment-events", event);
     }

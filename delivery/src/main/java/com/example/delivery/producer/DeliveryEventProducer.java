@@ -9,7 +9,12 @@ import com.example.delivery.model.DeliveryEvent;
 @Component
 public class DeliveryEventProducer {
 
-    private final KafkaTemplate<String, DeliveryEvent> kafkaTemplate=null;
+    public DeliveryEventProducer(KafkaTemplate<String, DeliveryEvent> kafkaTemplate) {
+		super();
+		this.kafkaTemplate = kafkaTemplate;
+	}
+
+	private final KafkaTemplate<String, DeliveryEvent> kafkaTemplate;
 
     public void sendDeliveryUpdate(Long orderId, String status) {
         DeliveryEvent event = new DeliveryEvent(orderId, status);

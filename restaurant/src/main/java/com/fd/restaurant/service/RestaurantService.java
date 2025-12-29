@@ -1,5 +1,6 @@
 package com.fd.restaurant.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -28,6 +29,10 @@ public class RestaurantService {
     public Restaurant addMenuItem(String restaurantId, MenuItem item) {
         Restaurant restaurant = repository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+        if (restaurant.getMenu() == null) {
+            restaurant.setMenu(new ArrayList<>());
+        }
 
         restaurant.getMenu().add(item);
         return repository.save(restaurant);

@@ -21,7 +21,11 @@ public class SecurityConfig {
             	.pathMatchers("/actuator/**").permitAll()
                 .pathMatchers("/auth/**").permitAll()   // allow register/login
                 .anyExchange().authenticated()          // everything else secured
+                
             )
+            .oauth2ResourceServer(ServerHttpSecurity.OAuth2ResourceServerSpec::jwt)
+            
             .build();
+        
     }
 }
