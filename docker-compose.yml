@@ -1,10 +1,5 @@
-version: "3.8"
-
 services:
 
-  # --------------------
-  # Zookeeper
-  # --------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     container_name: zookeeper
@@ -13,10 +8,9 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
 
-  # --------------------
-  # Kafka
-  # --------------------
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     container_name: kafka
@@ -30,10 +24,9 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
 
-  # --------------------
-  # MySQL (Order + Payment)
-  # --------------------
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -44,9 +37,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-  # --------------------
-  # MongoDB (Restaurant)
-  # --------------------
   mongodb:
     image: mongo:6.0
     container_name: mongodb
@@ -56,5 +46,7 @@ services:
       - mongo_data:/data/db
 
 volumes:
+  kafka_data:
+  zookeeper_data:
   mysql_data:
   mongo_data:

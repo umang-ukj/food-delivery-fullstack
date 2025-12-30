@@ -34,3 +34,43 @@ Microservices-based food delivery platform built using Java and Spring Boot.
 6) Order Service -> status = OUT_FOR_DELIVERY
 7) Delivery Service -> delivery-events (DELIVERED)
 8) Order Service -> status = DELIVERED
+
+Order Service
+   │
+   │  OrderCreatedEvent
+   ▼
+Kafka Topic: order-events
+   │
+   ▼
+Payment Service
+   │
+   │  PaymentCompletedEvent / PaymentFailedEvent
+   ▼
+Kafka Topic: payment-events
+   │
+   ▼
+Order Service
+   │
+   │  OrderConfirmedEvent
+   ▼
+Kafka Topic: order-confirmed-events
+   │
+   ▼
+Delivery Service
+   │
+   │  DeliveryCompletedEvent
+   ▼
+Kafka Topic: delivery-events
+   │
+   ▼
+Order Service (FINAL UPDATE)
+
+
+- doker-compose up -d
+- docker ps
+- docker exec -it mysql mysql -uroot -proot
+- create database userdb;
+- create database orderdb;
+- show databases;
+- docker exec -it mongodb mongosh
+- docker compose down

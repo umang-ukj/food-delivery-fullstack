@@ -36,7 +36,7 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
         # REQUIRED since you disabled type headers
-        spring.json.value.default.type: com.fd.order.entity.OrderEvent
+        spring.json.value.default.type: com.fd.order.entity.PaymentEvent
 
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false

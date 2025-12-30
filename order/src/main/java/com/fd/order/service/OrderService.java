@@ -23,6 +23,7 @@ public class OrderService {
     }
 
     public Order createOrder(Order order) {
+    	
         order.setStatus(OrderStatus.CREATED);
         Order saved = repository.save(order);
 
