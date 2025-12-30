@@ -12,32 +12,41 @@ import com.fd.order.repository.OrderRepository;
 @Component
 public class PaymentEventConsumer {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(PaymentEventConsumer.class);
+	private static final Logger log =
+			LoggerFactory.getLogger(PaymentEventConsumer.class);
 
-    private final OrderRepository repository;
+	private final OrderRepository repository;
 
-    public PaymentEventConsumer(OrderRepository repository) {
-        this.repository = repository;
-    }
+	public PaymentEventConsumer(OrderRepository repository) {
+		this.repository = repository;
+	}
 
-    @KafkaListener(topics = "payment-events")
-    public void handlePaymentEvent(PaymentEvent event) {
+	@KafkaListener(topics = "payment-events")
+	public void handlePaymentEvent(PaymentEvent event) {
 
-        log.info("Received PAYMENT_{} event for orderId={}",
-                event.getStatus(), event.getOrderId());
+		log.info("Received PAYMENT_{} event for orderId={}",
+				event.getStatus(), event.getOrderId());
 
-        Order order = repository.findById(event.getOrderId())
-                .orElseThrow();
+		Order order = repository.findById(event.getOrderId())
+				.orElseThrow();
 
-        if ("SUCCESS".equals(event.getStatus())) {
-            order.setStatus(OrderStatus.PAID);
-            log.info("Order {} marked as PAID", order.getId());
-        } else {
-            order.setStatus(OrderStatus.FAILED);
-            log.warn("Order {} marked as FAILED", order.getId());
-        }
+		if ("SUCCESS".equals(event.getStatus())) {
+			//if order status is paid/failed/delivered
+			if (order.getStatus() != OrderStatus.CREATED &&
+					order.getStatus() != OrderStatus.PAYMENT_PENDING) {
+				return;
+			}
+			order.setStatus(OrderStatus.PAID);
+			log.info("Order {} marked as PAID", order.getId());
+		}
+		if ("FAILED".equals(event.getStatus())) {
+			order.setStatus(OrderStatus.FAILED);
+			if (order.getStatus() == OrderStatus.FAILED) {
+				return;
+			}
+			log.warn("Order {} marked as FAILED", order.getId());
+		}
 
-        repository.save(order);
-    }
+		repository.save(order);
+	}
 }

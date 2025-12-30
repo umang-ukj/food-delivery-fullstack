@@ -29,6 +29,8 @@ spring:
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        properties:
+          enable.idempotence: true
 
         # REQUIRED since you disabled type headers
         spring.json.value.default.type: com.fd.payment.model.OrderEvent
