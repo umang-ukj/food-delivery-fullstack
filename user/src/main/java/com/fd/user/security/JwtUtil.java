@@ -2,12 +2,9 @@ package com.fd.user.security;
 
 import java.security.Key;
 import java.util.Date;
-
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
-
+import com.fd.user.entity.User;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
@@ -17,9 +14,10 @@ public class JwtUtil {
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    public String generateToken(String username) {
+    public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getEmail())
+                .claim("userId", user.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(System.currentTimeMillis() + 60 * 60 * 1000)

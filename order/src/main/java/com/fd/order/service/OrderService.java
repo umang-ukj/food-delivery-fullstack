@@ -1,5 +1,7 @@
 package com.fd.order.service;
 
+import java.util.List;
+
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -82,5 +84,21 @@ public class OrderService {
                 new FixedBackOff(3000L, 3)
         );
     }
+
+    public List<Order> findByUserId(Long userId) {
+        List<Order> orders = repository.findByUserId(userId);
+
+        if (orders.isEmpty()) {
+            throw new RuntimeException("No orders found for user: " + userId);
+        }
+
+        return orders;
+    }
+
+	public Order findById(Long orderId) {
+		// TODO Auto-generated method stub
+		return repository.findById(orderId).orElseThrow(()->new RuntimeException("order not found"));
+	}
+
 
 }

@@ -1,6 +1,7 @@
 package com.fd.restaurant.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +31,16 @@ public class RestaurantController {
     }
 
     @GetMapping
+    public List<Restaurant> getAllRestaurants(){
+    	return service.getAllRestaurants();
+    }
+    
+    @GetMapping("/{id}")
+    public Restaurant getRestaurant(@PathVariable String id) {
+        return service.getRestaurantById(id);
+    }
+    
+    @GetMapping("/location")
     public List<Restaurant> getByLocation(
             @RequestParam String location) {
         return service.getRestaurantsByLocation(location);

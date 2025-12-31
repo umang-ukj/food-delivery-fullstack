@@ -10,6 +10,8 @@
 
 <button onclick="goToLogin()">Login</button>
 <button onclick="goToOrder()">Place Order</button>
+<button onclick="goToOrders()">My Orders</button>
+
 
 <script>
   function goToLogin() {
@@ -23,6 +25,13 @@
       return;
     }
     window.location.href = "order.html";
+  }
+  function goToOrders() {
+    if (!localStorage.getItem("jwt")) {
+      alert("Please login first");
+      return;
+    }
+    window.location.href = "orders.html";
   }
 </script>
 
