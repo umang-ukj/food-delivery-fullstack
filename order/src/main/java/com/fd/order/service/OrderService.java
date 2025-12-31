@@ -12,7 +12,10 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.backoff.FixedBackOff;
 
+import com.fd.order.dto.CreateOrderRequest;
+import com.fd.order.dto.OrderItemRequest;
 import com.fd.order.entity.Order;
+import com.fd.order.entity.OrderItem;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.event.producer.OrderEventProducer;
 import com.fd.order.repository.OrderRepository;
@@ -32,16 +35,34 @@ public class OrderService {
         this.producer = producer;
     }
 
-    public Order createOrder(Order order) {
-    	
+    public Order createOrder(Long userId, CreateOrderRequest request) {
+
+        Order order = new Order();
+        order.setUserId(userId);
+        order.setRestaurantId(request.getRestaurantId());
         order.setStatus(OrderStatus.CREATED);
+
+        double total = 0;
+
+        for (OrderItemRequest itemReq : request.getItems()) {
+            OrderItem item = new OrderItem();
+            item.setItemId(itemReq.getItemId());
+            item.setName(itemReq.getName());
+            item.setPrice(itemReq.getPrice());
+            item.setQuantity(itemReq.getQuantity());
+            item.setOrder(order);
+
+            order.getItems().add(item);
+            total += itemReq.getPrice() * itemReq.getQuantity();
+        }
+
+        order.setTotalAmount(total);
         Order saved = repository.save(order);
 
         producer.publishOrderCreated(saved);
 
         return saved;
     }
-    
     
     //this method retries for 3 times after 3 sec gap, otherwise sends to DLQ(dead letter queue)
     @Bean
@@ -96,8 +117,11 @@ public class OrderService {
     }
 
 	public Order findById(Long orderId) {
-		// TODO Auto-generated method stub
 		return repository.findById(orderId).orElseThrow(()->new RuntimeException("order not found"));
+	}
+
+	public Order save(Order order) {
+		return repository.save(order);
 	}
 
 

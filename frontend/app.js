@@ -92,11 +92,12 @@ function placeOrder() {
     return;
   }
 
-  // derive total from cart (NOT user input)
+  //calculating this total in backend now
+  /* // derive total from cart (NOT user input)
    const totalAmount = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
-  );
+  ); */
 
   fetch(`${API_BASE}/orders`, {
     method: "POST",
@@ -106,7 +107,12 @@ function placeOrder() {
     },
     body: JSON.stringify({
       restaurantId: selectedRestaurantId,
-      totalAmount: totalAmount
+      items: cart.map(item => ({
+        itemId: item.itemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }))
     })
   })
   .then(res => {
