@@ -64,48 +64,6 @@ public class OrderService {
         return saved;
     }
     
-    //this method retries for 3 times after 3 sec gap, otherwise sends to DLQ(dead letter queue)
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object>
-    kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory) {
-
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
-
-        factory.setConsumerFactory(consumerFactory);
-
-        factory.setCommonErrorHandler(
-                new DefaultErrorHandler(
-                        new FixedBackOff(3000L, 3) // 3 retries, 3 sec gap
-                )
-        );
-
-        return factory;
-    }
-
-    // this is a dead letter queue. whenever a msg keeps failing instead of blocking the customer we send the msg to DLQ.
-    //acts as a detailed log for failed msgs keeping their msgs, topic, partitions, timestamps etc.
-    //helpful for debugging
-    @Bean
-    public DefaultErrorHandler errorHandler(
-            KafkaTemplate<String, Object> kafkaTemplate) {
-
-        DeadLetterPublishingRecoverer recoverer =
-                new DeadLetterPublishingRecoverer(
-                        kafkaTemplate,
-                        (record, ex) -> new TopicPartition(
-                                record.topic() + "-dlt",
-                                record.partition()
-                        )
-                );
-
-        return new DefaultErrorHandler(
-                recoverer,
-                new FixedBackOff(3000L, 3)
-        );
-    }
-
     public List<Order> findByUserId(Long userId) {
         List<Order> orders = repository.findByUserId(userId);
 
@@ -117,7 +75,7 @@ public class OrderService {
     }
 
 	public Order findById(Long orderId) {
-		return repository.findById(orderId).orElseThrow(()->new RuntimeException("order not found"));
+		return repository.findByIdWithItems(orderId).orElseThrow(()->new RuntimeException("order not found"));
 	}
 
 	public Order save(Order order) {

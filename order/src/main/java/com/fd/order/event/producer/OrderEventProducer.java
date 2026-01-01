@@ -3,8 +3,8 @@ package com.fd.order.event.producer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import com.fd.events.OrderEvent;
 import com.fd.order.entity.Order;
-import com.fd.order.entity.OrderEvent;
 
 @Component
 public class OrderEventProducer {

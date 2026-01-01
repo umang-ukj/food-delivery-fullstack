@@ -1,5 +1,10 @@
 package com.fd.payment.repository;
 
-public interface PaymentRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.fd.payment.entity.Payment;
+
+public interface PaymentRepository  extends JpaRepository<Payment, Long>{
+
 
 }

@@ -4,7 +4,11 @@ server:
 spring:
   application:
     name: delivery
-
+  datasource:
+    url: jdbc:mysql://localhost:3307/deliverydb
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
   kafka:
     bootstrap-servers: localhost:9092
 
@@ -19,16 +23,17 @@ spring:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
-        # REQUIRED since you disabled type headers
-        spring.json.value.default.type: com.example.delivery.model.OrderEvent
-
-        spring.json.trusted.packages: "*"
+        # 🔥 REQUIRED since type headers are disabled
         spring.json.use.type.headers: false
+        spring.json.value.default.type: com.fd.events.PaymentEvent
+        spring.json.trusted.packages: com.fd.events
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
       properties:
+        spring.json.add.type.headers: false
         enable.idempotence: true
 
 eureka:

@@ -1,5 +1,10 @@
 package com.fd.order.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderItemRequest {
 
     private String itemId;
@@ -29,16 +34,6 @@ public class OrderItemRequest {
 	}
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
-	}
-	public OrderItemRequest(String itemId, String name, int price, int quantity) {
-		super();
-		this.itemId = itemId;
-		this.name = name;
-		this.price = price;
-		this.quantity = quantity;
-	}
-	public OrderItemRequest() {
-		super();
 	}
 
 }

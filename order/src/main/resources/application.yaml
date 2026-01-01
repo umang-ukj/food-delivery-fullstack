@@ -24,6 +24,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
+        spring.json.add.type.headers: false
         enable.idempotence: true
 
     consumer:
@@ -37,11 +38,10 @@ spring:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
-        # REQUIRED since you disabled type headers
-        spring.json.value.default.type: com.fd.order.entity.PaymentEvent
-
-        spring.json.trusted.packages: "*"
+        # 🔥 REQUIRED (Order consumes DeliveryEvent)
         spring.json.use.type.headers: false
+        spring.json.value.default.type: com.fd.events.DeliveryEvent
+        spring.json.trusted.packages: com.fd.events
 
 eureka:
   client:

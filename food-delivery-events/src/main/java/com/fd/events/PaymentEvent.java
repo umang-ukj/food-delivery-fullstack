@@ -1,9 +1,9 @@
-package com.fd.order.entity;
+package com.fd.events;
 
 public class PaymentEvent {
 
     private Long orderId;
-    private String status; // SUCCESS | FAILED
+    private String status;
 
     public PaymentEvent() {
     }

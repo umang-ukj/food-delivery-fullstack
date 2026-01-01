@@ -19,6 +19,7 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+
     consumer:
       group-id: payment-service-group
       auto-offset-reset: earliest
@@ -29,18 +30,19 @@ spring:
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        properties:
-          enable.idempotence: true
 
-        # REQUIRED since you disabled type headers
-        spring.json.value.default.type: com.fd.payment.model.OrderEvent
+        # 🔥 REQUIRED since type headers are disabled
         spring.json.use.type.headers: false
-        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.fd.events.OrderEvent
+        spring.json.trusted.packages: com.fd.events
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
       properties:
         spring.json.add.type.headers: false
+        enable.idempotence: true
 
 eureka:
   client:

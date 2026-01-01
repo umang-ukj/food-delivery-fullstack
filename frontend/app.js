@@ -27,24 +27,60 @@ function login() {
 
 function pollOrderStatus(orderId) {
   const token = localStorage.getItem("jwt");
-
+  const MAX_ATTEMPTS = 40; // ~2 minutes (40 * 3s)
+  let attempts = 0;
+  let lastStatus = null;
   const interval = setInterval(() => {
+    attempts++;
+
     fetch(`${API_BASE}/orders/${orderId}`, {
       headers: {
         "Authorization": `Bearer ${token}`
       }
     })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res.json();
+    })
     .then(order => {
       document.getElementById("status").innerText =
         "Order Status: " + order.status;
+      // Only react if status changed
+      if (order.status !== lastStatus) {
+        lastStatus = order.status;
 
-      if (order.status === "DELIVERED" || order.status === "FAILED") {
-        clearInterval(interval);
+        document.getElementById("status").innerText =
+          "Order Status: " + order.status;
+
+        console.log("Status changed to:", order.status);
       }
+      //  STOP on terminal states
+      if (
+        order.status === "PAID" ||
+        order.status === "DELIVERED" ||
+        order.status === "FAILED" ||
+        order.status === "CANCELLED"
+      ) {
+        clearInterval(interval);
+        console.log("Polling stopped: final state");
+      }
+
+      //  STOP after max time
+      if (attempts >= MAX_ATTEMPTS) {
+        clearInterval(interval);
+        console.warn("Polling stopped: timeout");
+      }
+    })
+    .catch(err => {
+      console.error("Polling error:", err.message);
+      clearInterval(interval); // stop continuously fetching details from backend
     });
+
   }, 3000);
 }
+
 
 function loadRestaurants() {
   fetch(`${API_BASE}/restaurants`, {
@@ -106,7 +142,7 @@ function placeOrder() {
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
     },
     body: JSON.stringify({
-      restaurantId: selectedRestaurantId,
+      restaurantId: selectedRestaurantId, 
       items: cart.map(item => ({
         itemId: item.itemId,
         name: item.name,

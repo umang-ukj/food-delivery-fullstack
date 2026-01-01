@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.fd.order.entity.DeliveryEvent;
+import com.fd.events.DeliveryEvent;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.repository.OrderRepository;
@@ -22,7 +22,7 @@ public class DeliveryEventConsumer {
         this.repository = repository;
     }
 
-    @KafkaListener(topics = "delivery-events")
+    @KafkaListener(topics = "delivery-events",containerFactory = "deliveryKafkaListenerContainerFactory")
     public void handleDeliveryEvent(DeliveryEvent event) {
 
         log.info("Received DELIVERY_{} event for orderId={}",

@@ -3,7 +3,8 @@ package com.fd.payment.producer;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fd.payment.model.PaymentEvent;
+import com.fd.events.PaymentEvent;
+
 
 //publish result after payment is done
 @Component

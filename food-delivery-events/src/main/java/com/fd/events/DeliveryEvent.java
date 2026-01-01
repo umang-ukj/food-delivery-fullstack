@@ -1,8 +1,9 @@
-package com.example.delivery.model;
+package com.fd.events;
+
 
 public class DeliveryEvent {
     private Long orderId;
-    private String status; // OUT_FOR_DELIVERY / DELIVERED
+    private String status;
 	public Long getOrderId() {
 		return orderId;
 	}
@@ -20,5 +21,9 @@ public class DeliveryEvent {
 		this.orderId = orderId;
 		this.status = status;
 	}
+	public DeliveryEvent() {
+		super();
+	}
 
+    
 }

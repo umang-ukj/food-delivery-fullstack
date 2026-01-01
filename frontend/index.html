@@ -9,7 +9,6 @@
 <p>Microservices-based food delivery application</p>
 
 <button onclick="goToLogin()">Login</button>
-<button onclick="goToOrder()">Place Order</button>
 <button onclick="goToOrders()">My Orders</button>
 
 
@@ -18,14 +17,6 @@
     window.location.href = "login.html";
   }
 
-  function goToOrder() {
-    if (!localStorage.getItem("jwt")) {
-      alert("Please login first");
-      window.location.href = "login.html";
-      return;
-    }
-    window.location.href = "order.html";
-  }
   function goToOrders() {
     if (!localStorage.getItem("jwt")) {
       alert("Please login first");

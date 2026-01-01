@@ -1,4 +1,4 @@
-package com.fd.order.entity;
+package com.fd.events;
 
 public class OrderEvent {
     private Long orderId;
