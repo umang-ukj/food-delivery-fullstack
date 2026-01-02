@@ -23,8 +23,14 @@ function login() {
     // store auth info
     localStorage.setItem("jwt", data.token);
     localStorage.setItem("userEmail", email);
+    const payload = JSON.parse(atob(data.token.split(".")[1]));
+    const role = payload.role;
 
-    window.location.href = "index.html";
+  if (role === "ADMIN") {
+    window.location.href = "admin.html";
+  } else {
+    window.location.href = "restaurants.html";
+  }
   })
   .catch(() => alert("Login failed"));
 }
@@ -204,10 +210,50 @@ function loadOrders() {
     orders.forEach(order => {
       const li = document.createElement("li");
       li.innerText = `Order #${order.id} - ${order.status}`;
-      li.onclick = () => trackOrder(order.id);
-      list.appendChild(li);
+       li.style.cursor = "pointer";
+
+        li.onclick = () => showOrderDetails(order.id);
+        list.appendChild(li);
     });
   });
+}
+function showOrderDetails(orderId) {
+  fetch(`${API_BASE}/orders/${orderId}`, {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+    .then(res => res.json())
+    .then(order => {
+      const div = document.getElementById("orderDetails");
+
+      let itemsHtml = "";
+
+      order.items.forEach(item => {
+        itemsHtml += `
+          <li>
+            ${item.name} x ${item.quantity}
+            = ₹${item.price * item.quantity}
+          </li>
+        `;
+      });
+
+      div.innerHTML = `
+        <h3>Order #${order.id}</h3>
+        <p><b>Status:</b> ${order.status}</p>
+
+        <ul>
+          ${itemsHtml}
+        </ul>
+
+        <hr>
+        <p><b>Total Amount:</b> ₹${order.totalAmount}</p>
+      `;
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Failed to load order details");
+    });
 }
 
 function trackOrder(orderId) {
