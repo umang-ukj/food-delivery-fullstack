@@ -5,24 +5,33 @@ let selectedItems = [];
 let cart = [];
 
 function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
   fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value
-    })
+    body: JSON.stringify({ email, password })
   })
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) throw new Error("Login failed");
+    return res.json();
+  })
   .then(data => {
+    // store auth info
     localStorage.setItem("jwt", data.token);
+    localStorage.setItem("userEmail", email);
 
-    // restaurants page wired here
-    window.location.href = "restaurants.html";
+    window.location.href = "index.html";
   })
   .catch(() => alert("Login failed"));
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
 }
 
 function pollOrderStatus(orderId) {
@@ -83,6 +92,11 @@ function pollOrderStatus(orderId) {
 
 
 function loadRestaurants() {
+  if (!localStorage.getItem("jwt")) {
+    alert("Please login first");
+  window.location.href = "login.html";
+}
+
   fetch(`${API_BASE}/restaurants`, {
     headers: {
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
@@ -172,6 +186,10 @@ function placeOrder() {
 }
 
 function loadOrders() {
+  if (!localStorage.getItem("jwt")) {
+    alert("Please login first");
+  window.location.href = "login.html";
+}
   const token = localStorage.getItem("jwt");
   fetch(`${API_BASE}/orders/user/me`, {
   headers: {

@@ -4,6 +4,17 @@
   <title>Place Order</title>
 </head>
 <body>
+<div id="navbar"></div>
+
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("navbar").innerHTML = html;
+      renderNavbar();
+    });
+</script>
+<script src="navbar.js"></script>
 
 <h2>Place Order</h2>
 

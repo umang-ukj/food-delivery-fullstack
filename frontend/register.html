@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Registration</title>
+</head>
+<body>
+<div id="navbar"></div>
+
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("navbar").innerHTML = html;
+      renderNavbar();
+    });
+</script>
+<script src="navbar.js"></script>
+
+<h2>Create Account</h2>
+
+<form id="registerForm">
+  <input type="email" id="email" placeholder="Email" required /><br><br>
+  <input type="password" id="password" placeholder="Password" required /><br><br>
+
+  <button type="submit">Register</button>
+</form>
+
+<p id="msg"></p>
+
+<script src="register.js"></script>
+</body>
+</html>

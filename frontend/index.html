@@ -5,23 +5,30 @@
 </head>
 <body>
 
-<h1>🍔 Food Delivery Platform</h1>
-<p>Microservices-based food delivery application</p>
-
-<button onclick="goToLogin()">Login</button>
-<button onclick="goToOrders()">My Orders</button>
-
+<div id="navbar"></div>
 
 <script>
-  function goToLogin() {
-    window.location.href = "login.html";
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("navbar").innerHTML = html;
+      renderNavbar();
+    });
+</script>
+<script src="navbar.js"></script>
+
+<h2>Welcome </h2>
+<p>Choose what you want to do</p>
+
+<button onclick="browseRestaurants()">Browse Restaurants</button>
+<button onclick="goToOrders()">My Orders</button>
+
+<script>
+  function browseRestaurants() {
+    window.location.href = "restaurants.html";
   }
 
   function goToOrders() {
-    if (!localStorage.getItem("jwt")) {
-      alert("Please login first");
-      return;
-    }
     window.location.href = "orders.html";
   }
 </script>
