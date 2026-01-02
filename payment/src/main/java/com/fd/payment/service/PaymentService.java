@@ -1,8 +1,11 @@
 package com.fd.payment.service;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fd.events.OrderEvent;
 import com.fd.payment.entity.Payment;
@@ -24,27 +27,37 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
+    @Transactional
     public void processPayment(OrderEvent event) {
 
-        log.info("Received ORDER_CREATED event for orderId={}", event.getOrderId());
+        Long orderId = event.getOrderId();
+        log.info("Received ORDER_CREATED event for orderId={}", orderId);
+
+        
+        Optional<Payment> existingPayment =
+                paymentRepository.findByOrderId(orderId);
+
+        if (existingPayment.isPresent()) {
+            log.info("Payment already exists for orderId={}, skipping processing", orderId);
+            return; //  prevents Kafka retry + DB conflict
+        }
 
         boolean paymentSuccess = simulatePayment(event.getAmount());
         String status = paymentSuccess ? "PAID" : "FAILED";
 
-        
         Payment payment = new Payment();
-        payment.setOrderId(event.getOrderId());
+        payment.setOrderId(orderId);
         payment.setAmount(event.getAmount());
         payment.setStatus(status);
 
         paymentRepository.save(payment);
 
         log.info("Payment saved in DB for orderId={} with status={}",
-                 event.getOrderId(), status);
+                 orderId, status);
 
-        // ✅ SEND EVENT
-        producer.sendPaymentResult(event.getOrderId(), status);
-        log.info("Payment event sent for orderId={}", event.getOrderId());
+        // sends event only on successful db commit
+        producer.sendPaymentResult(orderId, status);
+        log.info("Payment event sent for orderId={}", orderId);
     }
 
     private boolean simulatePayment(Double amount) {

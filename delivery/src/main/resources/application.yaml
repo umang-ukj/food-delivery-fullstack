@@ -46,3 +46,19 @@ management:
     web:
       exposure:
         include: health,info
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+
+    org.springframework.orm.jpa: WARN
+    org.springframework.data.jpa: WARN
+
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
+
+    com.netflix.discovery: WARN
+    org.springframework.cloud: WARN
+
+    com.fd: INFO
