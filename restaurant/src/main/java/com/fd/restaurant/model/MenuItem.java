@@ -1,11 +1,25 @@
 package com.fd.restaurant.model;
 
+import org.springframework.data.mongodb.core.index.Indexed;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class MenuItem {
 
     private String itemId;
+    
+    @NotBlank(message = "Item name is required")
+    @Indexed(unique = true)
     private String name;
+    
+    @NotNull(message = "Price is required")
+    @Positive(message = "Price must be greater than 0")
     private double price;
+    
     private boolean available;
+    
 	public String getItemId() {
 		return itemId;
 	}

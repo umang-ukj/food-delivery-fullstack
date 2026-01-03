@@ -1,12 +1,10 @@
 package com.fd.user.dto;
 
-import org.jspecify.annotations.Nullable;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-//need to add code here
+
 public class RegisterRequest {
 
 	    @Email(message = "Invalid email format")

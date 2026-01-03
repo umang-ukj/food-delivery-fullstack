@@ -42,6 +42,7 @@ public class OrderService {
         order.setRestaurantId(request.getRestaurantId());
         order.setStatus(OrderStatus.CREATED);
 
+        order.setItems(new java.util.ArrayList<>());
         double total = 0;
 
         for (OrderItemRequest itemReq : request.getItems()) {
@@ -51,7 +52,7 @@ public class OrderService {
             item.setPrice(itemReq.getPrice());
             item.setQuantity(itemReq.getQuantity());
             item.setOrder(order);
-
+            
             order.getItems().add(item);
             total += itemReq.getPrice() * itemReq.getQuantity();
         }

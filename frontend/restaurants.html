@@ -16,11 +16,20 @@
 </script>
 <script src="navbar.js"></script>
 
+<label>Filter by location:</label>
+<select id="locationFilter" onchange="filterByLocation()">
+  <option value="">All Locations</option>
+</select>
+
+<hr>
+<ul id="restaurants"></ul>
+
 <h2>Select a Restaurant</h2>
 <ul id="restaurants"></ul>
 
 <script src="app.js"></script>
 <script>
+  loadLocations();
   loadRestaurants();
 </script>
 

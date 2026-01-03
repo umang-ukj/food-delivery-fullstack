@@ -1,0 +1,44 @@
+<div id="navbar"></div>
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("navbar").innerHTML = html;
+      renderNavbar();
+    });
+</script>
+
+<h2>Admin Dashboard</h2>
+
+<!-- ACTION BUTTONS -->
+<div style="margin-bottom:20px">
+  <button onclick="showAddRestaurant()">Add Restaurant</button>
+  <button onclick="showAddMenu()">Add Menu</button>
+</div>
+
+<!-- DYNAMIC FORM AREA -->
+<div id="content" style="margin-bottom:30px"></div>
+
+<hr>
+
+<div style="display:flex; gap:30px">
+
+  <!-- LEFT: Restaurant list -->
+  <div style="width:30%">
+    <h3>Restaurants</h3>
+    <ul id="restaurantList"></ul>
+  </div>
+
+  <!-- RIGHT: Menu management -->
+  <div style="width:70%">
+    <h3 id="selectedRestaurantTitle">Select a restaurant</h3>
+    <ul id="menuList"></ul>
+  </div>
+
+</div>
+
+<script src="navbar.js"></script>
+<script src="admin.js"></script>
+<script>
+  loadRestaurants();
+</script>

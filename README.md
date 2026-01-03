@@ -74,3 +74,5 @@ Order Service (FINAL UPDATE)
 - show databases;
 - docker exec -it mongodb mongosh
 - docker compose down
+
+admin1@gmail.com--random

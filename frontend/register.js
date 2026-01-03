@@ -4,6 +4,16 @@ document.getElementById("registerForm").addEventListener("submit", async functio
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
+  if (!email || !password) {
+    alert("Email and password are required");
+    return;
+  }
+
+  if (!email.includes("@")) {
+    alert("Invalid email format");
+    return;
+  }
+
   try {
     const response = await fetch("http://localhost:8080/auth/register", {
       method: "POST",

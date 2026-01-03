@@ -1,9 +1,18 @@
 <div class="navbar">
   <div class="navbar-left">
-     <b>Food Delivery Platform</b>
+    <b>Food Delivery Platform</b>
   </div>
 
-  <div class="navbar-right" id="navbarAuth"></div>
+  <div class="navbar-right">
+    <a href="restaurants.html" id="browseLink">Browse</a>
+    <a href="orders.html" id="ordersLink">My Orders</a>
+    <a href="admin.html" id="adminLink" style="display:none;">Admin</a>
+
+    <span id="userEmail"></span>
+
+    <!-- <button id="loginBtn" onclick="goToLogin()">Login</button> -->
+    <button id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
+  </div>
 </div>
 
 <style>
@@ -16,8 +25,29 @@
     font-family: Arial, sans-serif;
   }
 
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .navbar-right a {
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+  }
+
+  .navbar-right a:hover {
+    text-decoration: underline;
+  }
+
   .navbar-right button {
-    margin-left: 10px;
     cursor: pointer;
+    padding: 4px 10px;
   }
 </style>
+
+<script src="navbar.js"></script>
+<script>
+  renderNavbar();
+</script>

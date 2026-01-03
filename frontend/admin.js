@@ -1,0 +1,220 @@
+const API_BASE = "http://localhost:8080";
+let selectedRestaurantId = null;
+
+//prevents user from opening admin panel manually
+(function protectAdmin() {
+  const token = localStorage.getItem("jwt");
+  if (!token) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  if (payload.role !== "admin") {
+    alert("Access denied");
+    window.location.href = "index.html";
+  }
+})();
+
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+  };
+}
+
+function showAddRestaurant() {
+  document.getElementById("content").innerHTML = `
+    <h3>Add Restaurant</h3>
+    <input id="rname" placeholder="Restaurant Name"><br><br>
+    <input id="loc" placeholder="Location"><br><br>
+    <label>
+      <input type="checkbox" id="open"> Open
+    </label><br><br>
+    <button onclick="addRestaurant()">Save</button>
+  `;
+}
+
+function addRestaurant() {
+  const name = document.getElementById("rname").value.trim();
+  const location = document.getElementById("loc").value.trim();
+
+  if (!name || !location) {
+    alert("Restaurant name and location are required");
+    return;
+  }
+  fetch(`${API_BASE}/restaurants`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      name: document.getElementById("rname").value,
+      location: document.getElementById("loc").value,
+      open: document.getElementById("open").checked
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Forbidden");
+    alert("Restaurant added");
+    document.getElementById("content").innerHTML = "";
+    loadRestaurants(); 
+  })
+  .catch(() => alert("Access denied"));
+}
+
+function showAddMenu() {
+  if (!selectedRestaurantId) {
+    alert("Please select a restaurant first");
+    return;
+  }
+
+  document.getElementById("content").innerHTML = `
+    <h3>Add Menu Item</h3>
+
+    <input id="menuName" placeholder="Item Name"><br><br>
+    <input id="menuPrice" placeholder="Price"><br><br>
+
+    <label>
+      <input type="checkbox" id="available" checked> Available
+    </label><br><br>
+
+    <button onclick="addMenuItem()">Save</button>
+  `;
+}
+
+
+/* function addMenu() {
+  const rid = document.getElementById("rid").value;
+
+  fetch(`${API_BASE}/restaurants/${rid}/menu`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      name: document.getElementById("mname").value,
+      price: document.getElementById("price").value
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Forbidden");
+    alert("Menu added");
+  })
+  .catch(() => alert("Access denied"));
+} */
+
+  function addMenuItem() {
+
+  const name = document.getElementById("menuName").value.trim();
+  const price = document.getElementById("menuPrice").value;
+
+  if (!name || price <= 0) {
+    alert("Valid item name and price required");
+    return;
+  }
+  
+  fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      name: document.getElementById("menuName").value,
+      price: document.getElementById("menuPrice").value,
+      available: document.getElementById("available").checked
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+   document.getElementById("content").innerHTML = "";
+    selectRestaurant(selectedRestaurantId);
+  })
+  .catch(() => alert("Failed to add menu"));
+}
+
+
+function loadRestaurants() {
+  fetch(`${API_BASE}/restaurants`, {
+    headers: authHeaders()
+  })
+  .then(res => res.json())
+  .then(restaurants => {
+    const ul = document.getElementById("restaurantList");
+    ul.innerHTML = "";
+
+    restaurants.forEach(r => {
+      const li = document.createElement("li");
+      li.innerText = r.name;
+      li.style.cursor = "pointer";
+      li.onclick = () => selectRestaurant(r.id);
+      ul.appendChild(li);
+    });
+  });
+}
+
+function selectRestaurant(restaurantId) {
+  selectedRestaurantId = restaurantId;
+
+  fetch(`${API_BASE}/restaurants/${restaurantId}`, {
+    headers: authHeaders()
+  })
+  .then(res => res.json())
+  .then(r => {
+    document.getElementById("selectedRestaurantTitle").innerText =
+      `Menu – ${r.name}`;
+
+    const menuUl = document.getElementById("menuList");
+    menuUl.innerHTML = "";
+
+    
+    /* r.menu.forEach(item => {
+      const li = document.createElement("li");
+      li.innerText = `${item.name} – ₹${item.price}`;
+      menuUl.appendChild(li);
+    }); */
+
+    r.menu.forEach(item => {
+  const li = document.createElement("li");
+  li.innerHTML = `
+    ${item.name}
+    <input 
+      type="number" 
+      value="${item.price}" 
+      style="width:70px"
+      onchange="updateMenuPrice('${item.itemId}', this.value)"
+    />
+    <button onclick="deleteMenuItem('${item.itemId}')">❌</button>
+  `;
+  menuUl.appendChild(li);
+});
+
+
+    //document.getElementById("addMenuSection").style.display = "block";
+  });
+}
+
+function deleteMenuItem(menuId) {
+  if (!confirm("Delete this menu item?")) return;
+
+  fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu/${menuId}`, {
+    method: "DELETE",
+    headers: authHeaders()
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+    selectRestaurant(selectedRestaurantId); // refresh
+  })
+  .catch(() => alert("Failed to delete menu"));
+}
+
+function updateMenuPrice(menuId, newPrice) {
+  fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu/${menuId}`, {
+    method: "PUT",
+    headers: {
+      ...authHeaders(),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      price: Number(newPrice)
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+  })
+  .catch(() => alert("Failed to update price"));
+}

@@ -14,7 +14,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDetailsResponse {
-
     private Long id;
     private String restaurantId;
     private String status;

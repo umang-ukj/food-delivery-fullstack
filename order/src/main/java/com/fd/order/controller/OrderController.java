@@ -1,6 +1,8 @@
 package com.fd.order.controller;
 
 import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fd.order.dto.CreateOrderRequest;
 import com.fd.order.dto.OrderDetailsResponse;
@@ -35,6 +38,12 @@ public class OrderController {
 
         String token = authHeader.substring(7);
         Long userId = jwtUtil.extractUserId(token); 
+        if (!"user".equals(jwtUtil.extractRole(token))) {
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Admins cannot place orders"
+            );
+        }
 
         return orderService.createOrder(userId, request);
     }

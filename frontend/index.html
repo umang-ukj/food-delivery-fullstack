@@ -17,21 +17,17 @@
 </script>
 <script src="navbar.js"></script>
 
-<h2>Welcome </h2>
-<p>Choose what you want to do</p>
+<h2>Login</h2>
 
-<button onclick="browseRestaurants()">Browse Restaurants</button>
-<button onclick="goToOrders()">My Orders</button>
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
 
-<script>
-  function browseRestaurants() {
-    window.location.href = "restaurants.html";
-  }
+<button onclick="login()">Login</button>
 
-  function goToOrders() {
-    window.location.href = "orders.html";
-  }
-</script>
-
+<p>
+  New user?
+  <a href="register.html">Register here</a>
+</p>
+<script src="app.js"></script>
 </body>
 </html>

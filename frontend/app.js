@@ -4,9 +4,33 @@ let selectedRestaurantId = null;
 let selectedItems = [];
 let cart = [];
 
+function getUserRole() {
+  const token = localStorage.getItem("jwt");
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.role;
+  } catch {
+    return null;
+  }
+}
+
 function login() {
+
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    alert("Email and password are required");
+    return;
+  }
+
+  if (!email.includes("@")) {
+    alert("Invalid email format");
+    return;
+  }
+  
 
   fetch(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -26,7 +50,7 @@ function login() {
     const payload = JSON.parse(atob(data.token.split(".")[1]));
     const role = payload.role;
 
-  if (role === "ADMIN") {
+  if (role === "admin") {
     window.location.href = "admin.html";
   } else {
     window.location.href = "restaurants.html";
@@ -102,6 +126,11 @@ function loadRestaurants() {
     alert("Please login first");
   window.location.href = "login.html";
 }
+if (getUserRole() === "admin") {
+    alert("Admins cannot browse restaurants");
+    window.location.href = "admin.html";
+    return;
+  }
 
   fetch(`${API_BASE}/restaurants`, {
     headers: {
@@ -115,13 +144,35 @@ function loadRestaurants() {
 
     restaurants.forEach(r => {
       const li = document.createElement("li");
-      li.innerText = r.name;
+      li.innerText =  `${r.name}`;
       li.onclick = () => {
         window.location.href = `menu.html?restaurantId=${r.id}`;
       };
       ul.appendChild(li);
     });
   });
+}
+
+function loadRestaurantsByLocation(location) {
+  fetch(`${API_BASE}/restaurants/location?location=${encodeURIComponent(location)}`, {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => res.json())
+  .then(restaurants => {
+    const ul = document.getElementById("restaurants");
+    ul.innerHTML = "";
+
+    restaurants.forEach(r => {
+      const li = document.createElement("li");
+      li.innerText =  `${r.name}`;
+      li.onclick = () => {
+        window.location.href = `menu.html?restaurantId=${r.id}`;
+      };
+      ul.appendChild(li);
+    });
+});
 }
 
 function addToCart(item) {
@@ -142,6 +193,12 @@ function addToCart(item) {
 }
 
 function placeOrder() {
+
+  if (getUserRole() === "admin") {
+    alert("Admins are not allowed to place orders");
+    return;
+  }
+
   console.log("Cart at checkout (just added for debugging):", cart); 
   if (!cart || cart.length === 0) {
     alert("Your cart is empty");
@@ -196,6 +253,11 @@ function loadOrders() {
     alert("Please login first");
   window.location.href = "login.html";
 }
+  if (getUserRole() === "admin") {
+    alert("Admins cannot view orders");
+    window.location.href = "admin.html";
+    return;
+  }
   const token = localStorage.getItem("jwt");
   fetch(`${API_BASE}/orders/user/me`, {
   headers: {
@@ -261,6 +323,11 @@ function trackOrder(orderId) {
 }
 
 function loadMenu() {
+  if (getUserRole() === "admin") {
+    alert("Admins cannot view menus");
+    window.location.href = "admin.html";
+    return;
+  }
   const params = new URLSearchParams(window.location.search);
   selectedRestaurantId = params.get("restaurantId");
 
@@ -280,9 +347,16 @@ function loadMenu() {
         const li = document.createElement("li");
 
         li.innerHTML = `
-          ${item.name} - ₹${item.price}
-          <button type="button">Add</button>
-        `;
+  ${item.name} - ₹${item.price}
+`;
+
+if (getUserRole() !== "admin") {
+  const btn = document.createElement("button");
+  btn.innerText = "Add";
+  btn.onclick = () => addToCart(item);
+  li.appendChild(btn);
+}
+
 
         li.querySelector("button").onclick = () => addToCart(item);
         menuEl.appendChild(li);
@@ -318,3 +392,33 @@ function renderCart() {
 
   document.getElementById("total").innerText = total;
 }
+//fetch list of locations from backend to populate in dropdown
+function loadLocations() {
+  fetch(`${API_BASE}/restaurants/locations`, {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => res.json())
+  .then(locations => {
+    const dropdown = document.getElementById("locationFilter");
+
+    locations.forEach(loc => {
+      const opt = document.createElement("option");
+      opt.value = loc;
+      opt.textContent = loc;
+      dropdown.appendChild(opt);
+    });
+  });
+}
+//location dropdown functionality
+function filterByLocation() {
+  const location = document.getElementById("locationFilter").value;
+
+  if (!location) {
+    loadRestaurants(); // fallback to existing API
+  } else {
+    loadRestaurantsByLocation(location);
+  }
+}
+

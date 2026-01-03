@@ -11,6 +11,8 @@ import com.fd.user.dto.LoginRequest;
 import com.fd.user.dto.RegisterRequest;
 import com.fd.user.service.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/auth")
 public class UserController {
@@ -22,13 +24,13 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+    public ResponseEntity<?> register( @Valid @RequestBody RegisterRequest req) {
         userService.register(req);
         return ResponseEntity.ok("User registered");
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest req) {
+    public AuthResponse login( @Valid @RequestBody LoginRequest req) {
         return userService.login(req);
     }
 }
