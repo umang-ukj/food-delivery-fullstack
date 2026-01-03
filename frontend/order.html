@@ -18,10 +18,19 @@
 
 <h2>Place Order</h2>
 
-<input id="restaurantId" placeholder="Restaurant ID" />
-<input id="amount" placeholder="Amount" />
+<!-- <input id="restaurantId" placeholder="Restaurant ID" />
+<input id="amount" placeholder="Amount" /> -->
 
-<button onclick="placeOrder()">Place Order</button>
+<!-- <button onclick="placeOrder()">Place Order</button> -->
+<h3>Select Delivery Address</h3>
+
+<select id="addressSelect" onchange="enablePlaceOrder()">
+  <option value="">Select address</option>
+</select>
+
+<button id="placeOrderBtn" disabled onclick="placeOrder()">
+  Place Order
+</button>
 
 <h3 id="status"></h3>
 

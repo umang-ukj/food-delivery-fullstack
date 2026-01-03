@@ -8,6 +8,10 @@ function renderNavbar() {
   //const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
+if (role !== "admin") {
+  document.getElementById("addressLink").style.display = "inline";
+}
+
   if (!token) {
     // logged out state
     emailSpan.innerText = "";

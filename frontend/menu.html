@@ -1,3 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Menu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      gap: 30px;
+    }
+
+    .menu-section, .cart-section {
+      width: 50%;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    button {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
 <div id="navbar"></div>
 
 <script>
@@ -12,19 +53,53 @@
 
 <h2 id="restaurantName"></h2>
 
-<h3>Menu</h3>
-<ul id="menu"></ul>
+<div class="container">
 
-<hr/>
+  <!-- menu -->
+  <div class="menu-section">
+    <h3>Menu</h3>
+    <ul id="menu"></ul>
+  </div>
 
-<h3> CART </h3>
-<ul id="cart"></ul>
+  <!-- cart+address -->
+  <div class="cart-section">
 
-<h3>Total: ₹<span id="total">0</span></h3>
+    <h3>Cart</h3>
+    <ul id="cart"></ul>
 
-<button onclick="placeOrder()">Place Order</button>
+    <h3>Total: ₹<span id="total">0</span></h3>
+
+    <hr>
+
+    <h3>Select Delivery Address</h3>
+
+    <select id="addressSelect" onchange="enablePlaceOrder()">
+      <option value="">Select address</option>
+    </select>
+
+    <h4>Add New Address</h4>
+
+    <input id="addrLabel" placeholder="Label (Home / Office)">
+    <input id="addrLine1" placeholder="Address line">
+    <input id="addrLocation" placeholder="Location">
+    <input id="addrPincode" placeholder="Pincode">
+
+    <button onclick="saveAddress()">Save Address</button>
+
+    <hr>
+
+    <button id="placeOrderBtn" disabled onclick="placeOrder()">
+      Place Order
+    </button>
+
+  </div>
+
+</div>
 
 <script src="app.js"></script>
 <script>
   loadMenu();
 </script>
+
+</body>
+</html>

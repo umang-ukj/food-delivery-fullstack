@@ -1,7 +1,7 @@
 let token = "";
 const API_BASE = "http://localhost:8080";
 let selectedRestaurantId = null;
-let selectedItems = [];
+//let selectedItems = [];
 let cart = [];
 
 function getUserRole() {
@@ -204,6 +204,12 @@ function placeOrder() {
     alert("Your cart is empty");
     return;
   }
+//only proceeds after we select an address
+  const addressId = document.getElementById("addressSelect")?.value;
+  if (!addressId) {
+    alert("Please select a delivery address");
+    return;
+  }
 
   //calculating this total in backend now
   /* // derive total from cart (NOT user input)
@@ -218,7 +224,7 @@ function placeOrder() {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
     },
-    body: JSON.stringify({
+    /* body: JSON.stringify({
       restaurantId: selectedRestaurantId, 
       items: cart.map(item => ({
         itemId: item.itemId,
@@ -226,7 +232,18 @@ function placeOrder() {
         price: item.price,
         quantity: item.quantity
       }))
-    })
+    }) */
+   body: JSON.stringify({
+  restaurantId: selectedRestaurantId,
+  addressId: document.getElementById("addressSelect").value,
+  items: cart.map(item => ({
+        itemId: item.itemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }))
+})
+
   })
   .then(res => {
     if (!res.ok) {
@@ -340,15 +357,22 @@ function loadMenu() {
     .then(r => {
       document.getElementById("restaurantName").innerText = r.name;
 
+      loadAddresses(r.location);
+
+    // auto-fill address form
+    const locInput = document.getElementById("addrLocation");
+    if (locInput) {
+      locInput.value = r.location;
+      locInput.readOnly = true;
+    }
+
       const menuEl = document.getElementById("menu");
       menuEl.innerHTML = "";
 
       r.menu.forEach(item => {
         const li = document.createElement("li");
 
-        li.innerHTML = `
-  ${item.name} - ₹${item.price}
-`;
+        li.innerHTML = `${item.name} - ₹${item.price}`;
 
 if (getUserRole() !== "admin") {
   const btn = document.createElement("button");
@@ -356,24 +380,22 @@ if (getUserRole() !== "admin") {
   btn.onclick = () => addToCart(item);
   li.appendChild(btn);
 }
-
-
-        li.querySelector("button").onclick = () => addToCart(item);
+        //li.querySelector("button").onclick = () => addToCart(item);
         menuEl.appendChild(li);
       });
     });
 }
 
 
-function addItem(item) {
+/* function addItem(item) {
   selectedItems.push(item);
   updateTotal();
-}
+} */
 
-function updateTotal() {
+/* function updateTotal() {
   const total = selectedItems.reduce((sum, i) => sum + i.price, 0);
   document.getElementById("total").innerText = total;
-}
+} */
 
 function renderCart() {
   const cartEl = document.getElementById("cart");
@@ -422,3 +444,95 @@ function filterByLocation() {
   }
 }
 
+function loadAddresses(location) {
+
+  if (!location) return;
+  fetch(`${API_BASE}/auth/addresses?location=${encodeURIComponent(location)}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => res.json())
+  .then(addresses => {
+    const select = document.getElementById("addressSelect");
+    select.innerHTML = `<option value="">Select address</option>`;
+
+    addresses.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a.id;
+      opt.textContent = `${a.label} - ${a.line1}`;
+      select.appendChild(opt);
+    });
+  });
+}
+
+function enablePlaceOrder() {
+  const selected = document.getElementById("addressSelect").value;
+  document.getElementById("placeOrderBtn").disabled = !selected;
+}
+
+function saveAddress() {
+
+  if (getUserRole() === "admin") {
+    alert("Admins cannot add addresses");
+    return;
+  }
+
+  const address = {
+    label: document.getElementById("addrLabel").value,
+    line1: document.getElementById("addrLine1").value,
+    location: document.getElementById("addrLocation").value,
+    pincode: document.getElementById("addrPincode").value
+  };
+
+  // basic validation
+  if (!address.label || !address.line1 || !address.location) {
+    alert("Label, address and location are required");
+    return;
+  }
+
+  fetch(`${API_BASE}/auth/addresses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: JSON.stringify(address)
+  })
+  .then(res => {
+  if (!res.ok) {
+    return res.json().then(err => {
+      alert(Object.values(err).join("\n"));
+      throw new Error();
+    });
+  }
+  return res.json();
+})
+
+  .then(() => {
+    alert("Address added successfully");
+
+    // reload addresses for current restaurant location
+    const currentLocation =
+      document.getElementById("addrLocation").value;
+
+    loadAddresses(currentLocation);
+
+    // clear form
+    document.getElementById("addrLabel").value = "";
+    document.getElementById("addrLine1").value = "";
+    document.getElementById("addrLocation").value = "";
+    document.getElementById("addrPincode").value = "";
+  })
+  .catch(() => alert("Failed to add address"));
+}
+function resetForm() {
+  editingAddressId = null;
+
+  document.getElementById("addrLabel").value = "";
+  document.getElementById("addrLine1").value = "";
+  document.getElementById("addrLocation").value = "";
+  document.getElementById("addrPincode").value = "";
+
+  document.getElementById("saveBtn").innerText = "Save Address";
+}
