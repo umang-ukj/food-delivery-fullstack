@@ -33,7 +33,7 @@ public class DeliveryEventProducer {
         DeliveryEvent event = new DeliveryEvent(orderId, status);
         kafkaTemplate.send(
         	    "delivery-events",
-        	    new DeliveryEvent(orderId, status)
+        	    event
         	);
 
     }

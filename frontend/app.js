@@ -4,6 +4,8 @@ let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
+const paymentMethod = getSelectedPaymentMethod();
+
 function getUserRole() {
   const token = localStorage.getItem("jwt");
   if (!token) return null;
@@ -218,6 +220,12 @@ function placeOrder() {
     0
   ); */
 
+
+if (!paymentMethod) {
+  alert("Please select a payment method");
+  return;
+}
+
   fetch(`${API_BASE}/orders`, {
     method: "POST",
     headers: {
@@ -236,6 +244,7 @@ function placeOrder() {
    body: JSON.stringify({
   restaurantId: selectedRestaurantId,
   addressId: document.getElementById("addressSelect").value,
+  paymentMethod: paymentMethod,
   items: cart.map(item => ({
         itemId: item.itemId,
         name: item.name,
@@ -656,4 +665,11 @@ function editAddress(id) {
     body: JSON.stringify({ label, line1, location, pincode })
   })
   .then(() => loadAddressesList());
+}
+
+function getSelectedPaymentMethod() {
+  const selected = document.querySelector(
+    'input[name="paymentMethod"]:checked'
+  );
+  return selected ? selected.value : null;
 }

@@ -87,6 +87,22 @@
     <button onclick="saveAddress()">Save Address</button>
 
     <hr>
+<h3>Payment Method</h3>
+
+<div id="paymentMethods">
+  <label>
+    <input type="radio" name="paymentMethod" value="COD" checked />Cash on Delivery</label>
+  <br>
+
+  <label>
+    <input type="radio" name="paymentMethod" value="UPI" />UPI</label>
+  <br>
+
+  <label>
+    <input type="radio" name="paymentMethod" value="CARD" />Card</label>
+</div>
+
+<br>
 
     <button id="placeOrderBtn" disabled onclick="placeOrder()">
       Place Order

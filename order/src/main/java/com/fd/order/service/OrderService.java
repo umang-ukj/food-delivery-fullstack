@@ -60,7 +60,7 @@ public class OrderService {
         order.setTotalAmount(total);
         Order saved = repository.save(order);
 
-        producer.publishOrderCreated(saved);
+        producer.publishOrderCreated(saved, request.getPaymentMethod());
 
         return saved;
     }

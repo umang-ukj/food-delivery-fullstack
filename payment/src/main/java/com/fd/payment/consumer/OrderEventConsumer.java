@@ -15,14 +15,17 @@ public class OrderEventConsumer {
     public OrderEventConsumer(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
-
+    
     @KafkaListener(topics = "order-events")
     public void handleOrderEvent(OrderEvent event) {
-        if ("CREATED".equals(event.getStatus())) {
-            //log.info("Received ORDER_CREATED event for orderId={}", event.getOrderId());
-            // process payment
-        	paymentService.processPayment(event);
-        }
+		/*
+		 * if ("CREATED".equals(event.getStatus())) {
+		 * //log.info("Received ORDER_CREATED event for orderId={}",
+		 * event.getOrderId()); // process payment
+		 * 
+		 * }
+		 */
+    	paymentService.processPayment(event);
     }
 
 }

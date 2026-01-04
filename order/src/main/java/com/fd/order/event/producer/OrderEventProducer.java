@@ -16,11 +16,11 @@ public class OrderEventProducer {
 		this.kafkaTemplate = kafkaTemplate;
 	}
 
-	public void publishOrderCreated(Order order) {
+	public void publishOrderCreated(Order order, String paymentMethod) {
         OrderEvent event = new OrderEvent(
                 order.getId(),
                 order.getTotalAmount(),
-                order.getStatus().name()
+                paymentMethod
         );
         kafkaTemplate.send("order-events", event);
     }

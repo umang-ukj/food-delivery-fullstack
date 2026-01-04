@@ -66,6 +66,6 @@ public class PaymentEventConsumer {
 		    log.warn("Order {} marked as FAILED and event published", order.getId());
 		}
 
-		repository.save(order);
+		//repository.save(order);
 	}
 }

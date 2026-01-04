@@ -11,6 +11,7 @@ public class CreateOrderRequest {
 
     private String restaurantId;
     private List<OrderItemRequest> items;
+    private String paymentMethod;
     
     public List<OrderItemRequest> getItems() {
 		return items;
@@ -27,5 +28,13 @@ public class CreateOrderRequest {
     public void setRestaurantId(String restaurantId) {
         this.restaurantId = restaurantId;
     }
+
+	public String getPaymentMethod() {
+		return paymentMethod;
+	}
+
+	public void setPaymentMethod(String paymentMethod) {
+		this.paymentMethod = paymentMethod;
+	}
 
 }
