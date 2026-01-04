@@ -49,6 +49,7 @@ public class PaymentService {
         payment.setOrderId(orderId);
         payment.setAmount(event.getAmount());
         payment.setStatus(status);
+        payment.setPaymentMethod(event.getPaymentMethod());
 
         paymentRepository.save(payment);
 

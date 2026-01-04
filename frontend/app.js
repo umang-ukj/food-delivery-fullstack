@@ -4,7 +4,6 @@ let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
-const paymentMethod = getSelectedPaymentMethod();
 
 function getUserRole() {
   const token = localStorage.getItem("jwt");
@@ -195,7 +194,7 @@ function addToCart(item) {
 }
 
 function placeOrder() {
-
+const paymentMethod = getSelectedPaymentMethod();
   if (getUserRole() === "admin") {
     alert("Admins are not allowed to place orders");
     return;
@@ -668,8 +667,10 @@ function editAddress(id) {
 }
 
 function getSelectedPaymentMethod() {
-  const selected = document.querySelector(
-    'input[name="paymentMethod"]:checked'
-  );
+  const container = document.getElementById("paymentMethods");
+  if (!container) {
+    return null;
+  }
+  const selected = container.querySelector("input[type='radio']:checked");
   return selected ? selected.value : null;
 }

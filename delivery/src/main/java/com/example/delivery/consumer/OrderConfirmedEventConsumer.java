@@ -17,15 +17,15 @@ public class OrderConfirmedEventConsumer {
 	private static final Logger log =
 		    LoggerFactory.getLogger(OrderConfirmedEventConsumer.class);
 
-	private final KafkaTemplate<String, DeliveryEvent> kafkaTemplate;
 	private DeliveryEventProducer deliveryEventProducer;
-	public OrderConfirmedEventConsumer(KafkaTemplate<String, DeliveryEvent> kafkaTemplate) {
-		this.kafkaTemplate = kafkaTemplate;
+	public OrderConfirmedEventConsumer(DeliveryEventProducer deliveryEventProducer) {
+		this.deliveryEventProducer=deliveryEventProducer;
 	}
 
-	@KafkaListener(topics = "order-confirmed-events")
+	@KafkaListener(topics = "order-confirmed-events", containerFactory = "orderConfirmedKafkaListenerContainerFactory")
 	public void handleOrderConfirmed(OrderConfirmedEvent event) {
-		
+		log.info("Received ORDER_CONFIRMED event for orderId={}", event.getOrderId());
+
 		
 		deliveryEventProducer.sendDeliveryUpdate(
 	        event.getOrderId(),

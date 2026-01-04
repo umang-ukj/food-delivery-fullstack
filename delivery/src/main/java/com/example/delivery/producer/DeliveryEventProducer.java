@@ -1,5 +1,7 @@
 package com.example.delivery.producer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +14,8 @@ import com.fd.events.DeliveryEvent;
 @Component
 public class DeliveryEventProducer {
 
-    
+	private static final Logger log =LoggerFactory.getLogger(DeliveryEventProducer.class);
+
     public DeliveryEventProducer(DeliveryRepository deliveryRepository,
 			KafkaTemplate<String, DeliveryEvent> kafkaTemplate) {
 		super();
@@ -29,7 +32,8 @@ public class DeliveryEventProducer {
         delivery.setOrderId(orderId);
         delivery.setStatus(status);
         deliveryRepository.save(delivery);
-        
+        log.info("Publishing DELIVERY_{} event for orderId={}", status, orderId);
+
         DeliveryEvent event = new DeliveryEvent(orderId, status);
         kafkaTemplate.send(
         	    "delivery-events",

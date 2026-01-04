@@ -1,12 +1,17 @@
 package com.fd.order.event.producer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fd.order.dto.OrderConfirmedEvent;
+import com.fd.events.OrderConfirmedEvent;
+
 
 @Component
 public class OrderConfirmedEventProducer {
+
+	private static final Logger log =LoggerFactory.getLogger(OrderConfirmedEventProducer.class);
 
     private final KafkaTemplate<String, OrderConfirmedEvent> kafkaTemplate;
 
@@ -15,11 +20,10 @@ public class OrderConfirmedEventProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void publish(Long orderId) {
-        kafkaTemplate.send(
-            "order-confirmed-events",
-            new OrderConfirmedEvent(orderId)
-        );
+    public void publish(OrderConfirmedEvent event) {
+        kafkaTemplate.send("order-confirmed-events",event);
+        log.info("Publishing ORDER_CONFIRMED event for orderId={}", event);
+
     }
 }
 

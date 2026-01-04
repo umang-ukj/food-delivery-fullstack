@@ -5,10 +5,12 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import com.fd.events.OrderConfirmedEvent;
 import com.fd.events.OrderEvent;
 import com.fd.events.PaymentEvent;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderStatus;
+import com.fd.order.event.producer.OrderConfirmedEventProducer;
 import com.fd.order.repository.OrderRepository;
 
 @Component
@@ -16,15 +18,17 @@ public class PaymentEventConsumer {
 
 	private static final Logger log =
 			LoggerFactory.getLogger(PaymentEventConsumer.class);
-
+	
+	private final OrderConfirmedEventProducer orderConfirmedEventProducer;
 	private final OrderRepository repository;
 	private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
 	public PaymentEventConsumer(
 	        OrderRepository repository,
-	        KafkaTemplate<String, OrderEvent> kafkaTemplate) {
+	        KafkaTemplate<String, OrderEvent> kafkaTemplate,OrderConfirmedEventProducer orderConfirmedEventProducer) {
 	    this.repository = repository;
 	    this.kafkaTemplate = kafkaTemplate;
+	    this.orderConfirmedEventProducer=orderConfirmedEventProducer;
 	}
 
 
@@ -45,6 +49,13 @@ public class PaymentEventConsumer {
 		    }
 
 		    order.setStatus(OrderStatus.PAID);
+		    OrderConfirmedEvent confirmedEvent =
+		            new OrderConfirmedEvent(order.getId());
+
+		    orderConfirmedEventProducer.publish(confirmedEvent);
+
+		    log.info("Published ORDER_CONFIRMED event for orderId={}", order.getId());
+
 		    repository.save(order);
 
 			/*
@@ -52,6 +63,8 @@ public class PaymentEventConsumer {
 			 * OrderEvent(order.getId(), null, "PAID") );
 			 */
 		    log.info("Order {} marked as PAID and event published", order.getId());
+		    log.info("Order {} updated to PAID, triggering delivery flow", order.getId());
+
 		}
 
 		if ("FAILED".equals(event.getStatus())) {

@@ -1,5 +1,7 @@
 package com.fd.payment.consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,8 @@ import com.fd.payment.service.PaymentService;
 public class OrderEventConsumer {
 
     private final PaymentService paymentService;
+
+	private static final Logger log =LoggerFactory.getLogger(OrderEventConsumer.class);
 
     public OrderEventConsumer(PaymentService paymentService) {
         this.paymentService = paymentService;
@@ -25,6 +29,8 @@ public class OrderEventConsumer {
 		 * 
 		 * }
 		 */
+    	log.info("Received ORDER_CREATED event for orderId={}, paymentMethod={}",event.getOrderId(), event.getPaymentMethod());
+
     	paymentService.processPayment(event);
     }
 
