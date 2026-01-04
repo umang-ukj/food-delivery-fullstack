@@ -2,8 +2,66 @@
 <html>
 <head>
   <title>My Orders</title>
+
+  <style>
+    .order-card {
+      border: 1px solid #ddd;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+    }
+
+    .order-summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .delivery-status {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    /* INACTIVE steps */
+    .step {
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 12px;
+      background: #e0e0e0;
+      color: #777;
+      opacity: 0.35;
+      transform: scale(0.95);
+      transition: all 0.4s ease;
+    }
+
+    /* ACTIVE base */
+    .step.active {
+      opacity: 1;
+      transform: scale(1.05);
+      color: #fff;
+    }
+
+    /* PER-STEP COLORS */
+    .step.active[data-step="CREATED"] {
+      background-color: #1976d2;
+    }
+
+    .step.active[data-step="PICKED_UP"] {
+      background-color: #f57c00;
+    }
+
+    .step.active[data-step="OUT_FOR_DELIVERY"] {
+      background-color: #7b1fa2;
+    }
+
+    .step.active[data-step="DELIVERED"] {
+      background-color: #2e7d32;
+    }
+  </style>
 </head>
+
 <body>
+
 <div id="navbar"></div>
 
 <script>
@@ -18,14 +76,8 @@
 
 <h2>My Orders</h2>
 
-<ul id="orders"></ul>
-
-<h3 id="status">
-
-</h3>
-<div id="orderDetails">
-  <p>Select an order to view details</p>
-</div>
+<!-- Orders list -->
+<ul id="orders" style="list-style: none; padding: 0;"></ul>
 
 <script src="app.js"></script>
 <script>

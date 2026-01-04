@@ -4,7 +4,6 @@ let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
-
 function getUserRole() {
   const token = localStorage.getItem("jwt");
   if (!token) return null;
@@ -272,6 +271,36 @@ if (!paymentMethod) {
   });
   
 }
+//created->pickeup->outfordelivery->delivered
+function renderDeliveryStatus(container, finalStatus) {
+  if (!container || !finalStatus) return;
+
+  const steps = ["CREATED", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"];
+  const targetIndex = steps.indexOf(finalStatus);
+
+  const stepEls = Array.from(container.querySelectorAll(".step"));
+
+  // reset
+  stepEls.forEach(el => {
+    el.classList.remove("active");
+    el.style.opacity = "0.3";
+  });
+
+  let current = 0;
+
+  const interval = setInterval(() => {
+    if (current > targetIndex) {
+      clearInterval(interval);
+      return;
+    }
+
+    stepEls[current].classList.add("active");
+    stepEls[current].style.opacity = "1";
+
+    current++;
+  }, 700); //  visible transition
+}
+
 
 function loadOrders() {
   if (!localStorage.getItem("jwt")) {
@@ -302,17 +331,83 @@ function loadOrders() {
         li.onclick = () => showOrderDetails(order.id);
         list.appendChild(li);
     }); */
-    orders.forEach((order, index) => {
+    /* orders.forEach((order, index) => {
   const li = document.createElement("li");
     li.innerText = `Order #${index + 1} - ${order.status}`;
     li.style.cursor = "pointer";
     li.onclick = () => showOrderDetails(order.id);
     list.appendChild(li);
+}); */
+orders.forEach((order, index) => {
+  const li = document.createElement("li");
+
+  li.innerHTML = `
+    <div class="order-card">
+      <div class="order-summary">
+        <strong>Order #${index + 1}</strong><br/>
+        Status: ${order.status}
+      </div>
+
+      <div class="delivery-status">
+        <span class="step" data-step="CREATED">Confirmed</span>
+        <span class="step" data-step="PICKED_UP">Picked Up</span>
+        <span class="step" data-step="OUT_FOR_DELIVERY">Out for Delivery</span>
+        <span class="step" data-step="DELIVERED">Delivered</span>
+      </div>
+      <div class="order-details" style="display:none">
+      <p>Loading order details...</p>
+    </div>
+    </div>
+  `;
+
+  li.onclick = () => toggleOrderDetails(order.id, li);
+
+  renderDeliveryStatus(li, order.status);
+list.appendChild(li);
 });
+
 
   });
 }
-function showOrderDetails(orderId) {
+function toggleOrderDetails(orderId, orderElement) {
+
+  const detailsDiv = orderElement.querySelector(".order-details");
+
+  // toggle if already loaded
+  if (detailsDiv.style.display === "block") {
+    detailsDiv.style.display = "none";
+    return;
+  }
+
+  // collapse others (optional but nice UX)
+  document.querySelectorAll(".order-details").forEach(d => {
+    d.style.display = "none";
+  });
+
+  fetch(`${API_BASE}/orders/${orderId}`, {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => res.json())
+  .then(order => {
+
+    detailsDiv.innerHTML = `
+      <hr>
+      <strong>Order Details</strong>
+      <ul>
+        ${order.items.map(i =>
+          `<li>${i.name} x ${i.quantity} = ₹${i.price}</li>`
+        ).join("")}
+      </ul>
+      <strong>Total: ₹${order.totalAmount}</strong>
+    `;
+
+    detailsDiv.style.display = "block";
+  });
+}
+
+/* function showOrderDetails(orderId) {
   fetch(`${API_BASE}/orders/${orderId}`, {
     headers: {
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
@@ -334,7 +429,7 @@ function showOrderDetails(orderId) {
       });
 
       div.innerHTML = `
-        <h3>Order #${order.id}</h3>
+        <h3>Order details</h3>
         <p><b>Status:</b> ${order.status}</p>
 
         <ul>
@@ -349,7 +444,7 @@ function showOrderDetails(orderId) {
       console.error(err);
       alert("Failed to load order details");
     });
-}
+} */
 
 function trackOrder(orderId) {
   pollOrderStatus(orderId);
@@ -674,3 +769,7 @@ function getSelectedPaymentMethod() {
   const selected = container.querySelector("input[type='radio']:checked");
   return selected ? selected.value : null;
 }
+
+
+
+

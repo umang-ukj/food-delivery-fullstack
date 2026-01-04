@@ -6,6 +6,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import com.example.delivery.model.DeliveryStatus;
 import com.example.delivery.producer.DeliveryEventProducer;
 import com.fd.events.DeliveryEvent;
 import com.fd.events.OrderConfirmedEvent;
@@ -29,12 +30,12 @@ public class OrderConfirmedEventConsumer {
 		
 		deliveryEventProducer.sendDeliveryUpdate(
 	        event.getOrderId(),
-	        "OUT_FOR_DELIVERY"
+	        DeliveryStatus.OUT_FOR_DELIVERY
 	    );
 
 	    deliveryEventProducer.sendDeliveryUpdate(
 	        event.getOrderId(),
-	        "DELIVERED"
+	        DeliveryStatus.DELIVERED
 	    );
 	
 	}

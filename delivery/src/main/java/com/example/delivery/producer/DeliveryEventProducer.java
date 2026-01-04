@@ -6,6 +6,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.example.delivery.model.Delivery;
+import com.example.delivery.model.DeliveryStatus;
 import com.example.delivery.repository.DeliveryRepository;
 import com.fd.events.DeliveryEvent;
 
@@ -27,14 +28,14 @@ public class DeliveryEventProducer {
 
 	private final KafkaTemplate<String, DeliveryEvent> kafkaTemplate;
 
-    public void sendDeliveryUpdate(Long orderId, String status) {
+    public void sendDeliveryUpdate(Long orderId, DeliveryStatus status) {
     	Delivery delivery = new Delivery();
         delivery.setOrderId(orderId);
         delivery.setStatus(status);
         deliveryRepository.save(delivery);
         log.info("Publishing DELIVERY_{} event for orderId={}", status, orderId);
 
-        DeliveryEvent event = new DeliveryEvent(orderId, status);
+        DeliveryEvent event = new DeliveryEvent(orderId, status.name());
         kafkaTemplate.send(
         	    "delivery-events",
         	    event
