@@ -2,6 +2,7 @@ package com.fd.user.controller;
 
 import java.util.List;
 
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +49,7 @@ public class UserController {
     }
     
     @PostMapping("/addresses")
-    public User addAddress(
+    public Address addAddress(
         @RequestHeader("Authorization") String auth,
         @Valid @RequestBody Address address
     ) {
@@ -65,21 +66,34 @@ public class UserController {
         return userService.getAddressesByLocation(userId, location);
     }
     
+    @GetMapping("/addresses/all")
+    public List<Address> getAllUserAddresses(@RequestHeader("Authorization") String auth) {
+    	Long userId = JwtUtil.extractUserId(auth.substring(7));
+        return userService.getAllForUser(userId);
+    }
+    
     @PutMapping("/addresses/{addressId}")
-    public User updateAddress(@RequestHeader("Authorization") String auth, @PathVariable String addressId,
+    public ResponseEntity<?> updateAddress(@RequestHeader("Authorization") String auth, @PathVariable String addressId,
     		@Valid @RequestBody Address address) {
     	
         Long userId = JwtUtil.extractUserId(auth.substring(7));
-        return userService.updateAddress(userId, addressId, address);
+        userService.updateAddress(userId, addressId, address);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/addresses/{addressId}")
-    public User deleteAddress(
-        @RequestHeader("Authorization") String auth,
-        @PathVariable String addressId
-    ) {
+    public ResponseEntity<?> deleteAddress(@RequestHeader("Authorization") String auth,@PathVariable String addressId) {
         Long userId = JwtUtil.extractUserId(auth.substring(7));
-        return userService.deleteAddress(userId, addressId);
+         userService.deleteAddress(userId, addressId);
+         return ResponseEntity.ok().build();
+    }
+    
+    @PutMapping("/addresses/{addressId}/default")
+    public ResponseEntity<?> markDefault(@RequestHeader("Authorization") String auth, @PathVariable String addressId) {
+        Long userId = JwtUtil.extractUserId(auth.substring(7));
+
+        userService.markAsDefault(userId, addressId);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -12,20 +12,25 @@ import com.fd.user.dto.RegisterRequest;
 import com.fd.user.entity.Address;
 import com.fd.user.entity.Role;
 import com.fd.user.entity.User;
+import com.fd.user.repository.AddressRepository;
 import com.fd.user.repository.UserRepository;
 import com.fd.user.security.JwtUtil;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
 
     private final UserRepository repo;
+    private final AddressRepository addressRepo;
     private final PasswordEncoder encoder;
     private final JwtUtil jwtUtil;
 
-    public UserService(UserRepository repo, PasswordEncoder encoder, JwtUtil jwtUtil) {
+    public UserService(UserRepository repo, PasswordEncoder encoder, JwtUtil jwtUtil,AddressRepository addressRepo) {
         this.repo = repo;
         this.encoder = encoder;
         this.jwtUtil = jwtUtil;
+        this.addressRepo=addressRepo;
     }
 
     public void register(RegisterRequest req) {
@@ -49,28 +54,34 @@ public class UserService {
         return new AuthResponse(token,user.getRole().name());
     }
 
-    public User addAddress(Long userId, Address address) {
-        User user = repo.findById(userId).orElseThrow();
+    public Address addAddress(Long userId, Address address) {
+
+        // ensure user exists
+        repo.findById(userId).orElseThrow();
+
         address.setAddressId(UUID.randomUUID().toString());
-        user.getAddresses().add(address);
-        return repo.save(user);
+        address.setUserId(userId);
+        address.setIsDefault(false);
+
+        return addressRepo.save(address);
     }
 
 	public List<Address> getAddressesByLocation(Long userId, String location) {
-	    User user = repo.findById(userId).orElseThrow();
-
-	    return user.getAddresses().stream()
-	        .filter(a -> a.getLocation().equalsIgnoreCase(location))
-	        .toList();
+		return addressRepo.findByUserIdAndLocationIgnoreCase(userId, location);
 	}
 
+	public List<Address> getAllForUser(Long userId) {
+		//User user = repo.findById(userId).orElseThrow();
+
+	    return addressRepo.findByUserId(userId);
+	}
+	
 	public User updateAddress(Long userId, String addressId, Address updated) {
 	    User user = repo.findById(userId).orElseThrow();
 
-	    Address addr = user.getAddresses().stream()
-	        .filter(a -> a.getAddressId().equals(addressId))
-	        .findFirst()
-	        .orElseThrow(() -> new RuntimeException("Address not found"));
+	    Address addr = addressRepo.findByAddressIdAndUserId(addressId, userId)
+	    	    .orElseThrow(() -> new RuntimeException("Address not found"));
+
 
 	    addr.setLabel(updated.getLabel());
 	    addr.setLine1(updated.getLine1());
@@ -80,11 +91,29 @@ public class UserService {
 	    return repo.save(user);
 	}
 	
-	public User deleteAddress(Long userId, String addressId) {
-	    User user = repo.findById(userId).orElseThrow();
+	public void deleteAddress(Long userId, String addressId) {
+		Address address = addressRepo.findByAddressIdAndUserId(addressId, userId)
+			    .orElseThrow(() -> new RuntimeException("Address not found"));
 
-	    user.getAddresses().removeIf(a -> a.getAddressId().equals(addressId));
-	    return repo.save(user);
+			if (address.getIsDefault()) {
+			    throw new RuntimeException("Default address cannot be deleted");
+			}
+
+			addressRepo.delete(address);
+
 	}
+
+	@Transactional
+	public void markAsDefault(Long userId, String addressId) {
+
+	    addressRepo.clearDefaultForUser(userId);
+
+	    Address address = addressRepo
+	        .findByAddressIdAndUserId(addressId, userId)
+	        .orElseThrow(() -> new RuntimeException("Address not found"));
+
+	    address.setIsDefault(true);
+	}
+
 
 }

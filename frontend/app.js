@@ -3,7 +3,7 @@ const API_BASE = "http://localhost:8080";
 let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
-
+let editingAddressId = null;
 function getUserRole() {
   const token = localStorage.getItem("jwt");
   if (!token) return null;
@@ -459,10 +459,14 @@ function loadAddresses(location) {
 
     addresses.forEach(a => {
       const opt = document.createElement("option");
-      opt.value = a.id;
+      opt.value = a.addressId;
       opt.textContent = `${a.label} - ${a.line1}`;
+      if (a.isDefault) {
+    opt.selected = true;
+  }
       select.appendChild(opt);
     });
+    enablePlaceOrder();
   });
 }
 
@@ -491,8 +495,13 @@ function saveAddress() {
     return;
   }
 
-  fetch(`${API_BASE}/auth/addresses`, {
-    method: "POST",
+  const method = editingAddressId ? "PUT" : "POST";
+  const url = editingAddressId
+    ? `${API_BASE}/auth/addresses/${editingAddressId}`
+    : `${API_BASE}/auth/addresses`;
+
+  fetch(url, {
+    method,
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
@@ -500,31 +509,17 @@ function saveAddress() {
     body: JSON.stringify(address)
   })
   .then(res => {
-  if (!res.ok) {
-    return res.json().then(err => {
-      alert(Object.values(err).join("\n"));
-      throw new Error();
-    });
-  }
-  return res.json();
+  if (!res.ok) throw new Error();
 })
+.then(() => {
+    alert(editingAddressId ? "Address updated" : "Address added");
 
-  .then(() => {
-    alert("Address added successfully");
+    resetForm();
+    //loadAddresses(document.getElementById("addrLocation").value);
+    loadAddressesList();
 
-    // reload addresses for current restaurant location
-    const currentLocation =
-      document.getElementById("addrLocation").value;
-
-    loadAddresses(currentLocation);
-
-    // clear form
-    document.getElementById("addrLabel").value = "";
-    document.getElementById("addrLine1").value = "";
-    document.getElementById("addrLocation").value = "";
-    document.getElementById("addrPincode").value = "";
   })
-  .catch(() => alert("Failed to add address"));
+  .catch(() => alert("couldn't add address"));
 }
 function resetForm() {
   editingAddressId = null;
@@ -535,4 +530,122 @@ function resetForm() {
   document.getElementById("addrPincode").value = "";
 
   document.getElementById("saveBtn").innerText = "Save Address";
+}
+
+function toggleMenu(id) {
+  document.querySelectorAll(".menu-dropdown")
+    .forEach(m => m.style.display = "none");
+
+  const menu = document.getElementById(`menu-${id}`);
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+// close menu when clicking outside
+document.addEventListener("click", e => {
+  if (!e.target.classList.contains("menu-btn")) {
+    document.querySelectorAll(".menu-dropdown")
+      .forEach(m => m.style.display = "none");
+  }
+});
+function markAsDefault(addressId) {
+  fetch(`${API_BASE}/auth/addresses/${addressId}/default`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+    loadAddressesList();   // refresh UI
+  })
+  .catch(() => alert("Failed to mark default address"));
+}
+// Load all user addresses (no location filter here)
+  function loadAddressesList() {
+    fetch(`${API_BASE}/auth/addresses/all`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("jwt")}`
+      }
+    })
+    .then(res => res.json())
+    .then(addresses => {
+      const ul = document.getElementById("addressList");
+      ul.innerHTML = "";
+
+      addresses.forEach(a => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+  <div>
+    <b>${a.label}</b><br>
+    ${a.isDefault ? '<span style="color:green;margin-left:8px;">(Default)</span>' : ''}
+    <br>
+    ${a.line1}<br>
+    ${a.location} - ${a.pincode}
+  </div>
+  <div class="menu-container">
+  <button class="menu-btn" onclick="toggleMenu('${a.addressId}')">⋮</button>
+
+  <div class="menu-dropdown" id="menu-${a.addressId}">
+    <button onclick="startEditAddress(
+  '${a.addressId}',
+  '${a.label}',
+  '${a.line1}',
+  '${a.location}',
+  '${a.pincode}'
+)">✏️ Edit</button>
+${!a.isDefault ? 
+  `<button onclick="markAsDefault('${a.addressId}')">⭐ Set as Default</button>` : ''}
+
+   <button onclick="deleteAddress('${a.addressId}')"
+   ${a.isDefault ? 'disabled title="Default address cannot be deleted"' : ''}>🗑️ Delete </button>
+  </div>
+</div>
+
+`;
+
+        ul.appendChild(li);
+      });
+    });
+  }
+function startEditAddress(id, label, line1, location, pincode) {
+  editingAddressId = id;
+
+  document.getElementById("addrLabel").value = label;
+  document.getElementById("addrLine1").value = line1;
+  document.getElementById("addrLocation").value = location;
+  document.getElementById("addrPincode").value = pincode;
+
+  document.getElementById("saveBtn").innerText = "Update Address";
+}
+function deleteAddress(id) {
+  if (!confirm("Delete this address?")) return;
+
+  fetch(`${API_BASE}/auth/addresses/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(() => loadAddressesList());
+}
+function editAddress(id) {
+  const label = prompt("Label:");
+  const line1 = prompt("Address line:");
+  const location = prompt("Location:");
+  const pincode = prompt("Pincode:");
+
+  if (!label || !line1 || !location) {
+    alert("All fields required");
+    return;
+  }
+
+  fetch(`${API_BASE}/auth/addresses/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: JSON.stringify({ label, line1, location, pincode })
+  })
+  .then(() => loadAddressesList());
 }

@@ -40,9 +40,5 @@ public class User {
 	
 	@Enumerated(EnumType.STRING)
 	private Role role;
-	
-	@ElementCollection
-    @CollectionTable(name = "user_addresses",joinColumns = @JoinColumn(name = "user_id"))
-	private List<Address> addresses = new ArrayList<>();
 
 }
