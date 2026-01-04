@@ -286,14 +286,22 @@ function loadOrders() {
     const list = document.getElementById("orders");
     list.innerHTML = "";
 
-    orders.forEach(order => {
+    /* orders.forEach(order => {
       const li = document.createElement("li");
       li.innerText = `Order #${order.id} - ${order.status}`;
        li.style.cursor = "pointer";
 
         li.onclick = () => showOrderDetails(order.id);
         list.appendChild(li);
-    });
+    }); */
+    orders.forEach((order, index) => {
+  const li = document.createElement("li");
+    li.innerText = `Order #${index + 1} - ${order.status}`;
+    li.style.cursor = "pointer";
+    li.onclick = () => showOrderDetails(order.id);
+    list.appendChild(li);
+});
+
   });
 }
 function showOrderDetails(orderId) {
