@@ -4,6 +4,7 @@ let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
+let index=0;
 function getUserRole() {
   const token = localStorage.getItem("jwt");
   if (!token) return null;
@@ -527,13 +528,47 @@ function renderCart() {
     total += item.price * item.quantity;
 
     const li = document.createElement("li");
-    li.innerText =
-      `${item.name} x ${item.quantity} = ₹${item.price * item.quantity}`;
+    li.style.marginBottom = "10px";
+
+    li.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>${item.name}</strong><br/>
+          ₹${item.price} x ${item.quantity} = ₹${item.price * item.quantity}
+        </div>
+
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button onclick="decreaseQty(${index})">−</button>
+          <span>${item.quantity}</span>
+          <button onclick="increaseQty(${index})">+</button>
+          <button onclick="removeFromCart(${index})">❌</button>
+        </div>
+      </div>
+    `;
     cartEl.appendChild(li);
   });
 
   document.getElementById("total").innerText = total;
 }
+function increaseQty(index) {
+  cart[index].quantity++;
+  renderCart();
+}
+
+function decreaseQty(index) {
+  cart[index].quantity--;
+
+  if (cart[index].quantity <= 0) {
+    cart.splice(index, 1); // remove item
+  }
+  renderCart();
+}
+
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  renderCart();
+}
+
 //fetch list of locations from backend to populate in dropdown
 function loadLocations() {
   fetch(`${API_BASE}/restaurants/locations`, {
@@ -628,29 +663,39 @@ function saveAddress() {
     },
     body: JSON.stringify(address)
   })
-  .then(res => {
-  if (!res.ok) throw new Error();
+  .then(() => {
+  alert(editingAddressId ? "Address updated" : "Address added");
+
+  resetForm();
+
+  const location = document.getElementById("addrLocation")?.value;
+  if (location) {
+    loadAddresses(location); // refresh dropdown
+  }
 })
-.then(() => {
-    alert(editingAddressId ? "Address updated" : "Address added");
-
-    resetForm();
-    //loadAddresses(document.getElementById("addrLocation").value);
-    loadAddressesList();
-
-  })
-  .catch(() => alert("couldn't add address"));
+.catch(err => {
+  console.error(err);
+  alert("couldn't add address");
+});
 }
+
 function resetForm() {
   editingAddressId = null;
 
-  document.getElementById("addrLabel").value = "";
-  document.getElementById("addrLine1").value = "";
-  document.getElementById("addrLocation").value = "";
-  document.getElementById("addrPincode").value = "";
+  const label = document.getElementById("addrLabel");
+  const line1 = document.getElementById("addrLine1");
+  const location = document.getElementById("addrLocation");
+  const pincode = document.getElementById("addrPincode");
+  const saveBtn = document.getElementById("saveBtn");
 
-  document.getElementById("saveBtn").innerText = "Save Address";
+  if (label) label.value = "";
+  if (line1) line1.value = "";
+  if (location) location.value = "";
+  if (pincode) pincode.value = "";
+
+  if (saveBtn) saveBtn.innerText = "Save Address";
 }
+
 
 function toggleMenu(id) {
   document.querySelectorAll(".menu-dropdown")
