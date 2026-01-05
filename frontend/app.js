@@ -261,9 +261,18 @@ if (!paymentMethod) {
   .then(order => {
     // clear cart after successful order
     cart = [];
-
+    // STORE ORDER for Razorpay callback
+  window.currentOrderId = order.id;
+  if (paymentMethod === "CASH") {
+    // CASH → normal flow
     // redirect to order tracking page
     window.location.href = `orders.html?orderId=${order.id}`;
+    return;
+  }
+
+  // ONLINE PAYMENT → Razorpay
+  startRazorpayPayment(order.id, order.totalAmount);
+    
   })
   .catch(err => {
     console.error(err);
@@ -770,6 +779,75 @@ function getSelectedPaymentMethod() {
   return selected ? selected.value : null;
 }
 
+function startRazorpayPayment(orderId, amount) {
 
+  fetch(`${API_BASE}/payments/razorpay/order`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: JSON.stringify({
+      orderId: orderId,
+      amount: amount
+    })
+  })
+  .then(res => res.json())
+  .then(data => openRazorpayCheckout(data, orderId));
+}
+function openRazorpayCheckout(data, orderId) {
+
+  const options = {
+    key: "rzp_test_S096iHo0OtCLup", // ONLY key ID (safe)
+    amount: data.amount,
+    currency: data.currency,
+    name: "Food Delivery App",
+    description: "Order Payment",
+    order_id: data.razorpayOrderId,
+
+    handler: function (response) {
+      verifyPaymentOnBackend(orderId,
+    response.razorpay_payment_id,
+    response.razorpay_order_id,
+    response.razorpay_signature
+  );
+    },
+
+    theme: {
+      color: "#3399cc"
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+function verifyPaymentOnBackend(orderId, paymentId, razorpayOrderId, signature) {
+  fetch(`${API_BASE}/payments/razorpay/verify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: JSON.stringify({
+      orderId: orderId,
+      razorpayPaymentId: paymentId,
+      razorpayOrderId: razorpayOrderId,
+      razorpaySignature: signature
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Payment verification failed");
+    return ;
+  })
+  .then(() => {
+    // Redirect AFTER verification
+    window.location.href = `orders.html?orderId=${orderId}`;
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Payment verification failed");
+  });
+}
 
 

@@ -17,6 +17,8 @@ public class RouteConfig {
                 .uri("lb://order"))
             .route("restaurant", r -> r.path("/restaurants","/restaurants/**")
                     .uri("lb://restaurant"))
+            .route("payment", r -> r.path("/payments","/payments/**")
+                    .uri("lb://payment"))
             .build();
 	}
 }

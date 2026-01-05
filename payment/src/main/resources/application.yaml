@@ -31,7 +31,7 @@ spring:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
 
-        # 🔥 REQUIRED since type headers are disabled
+        # REQUIRED since type headers are disabled
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.fd.events.OrderEvent
         spring.json.trusted.packages: com.fd.events
@@ -71,3 +71,7 @@ logging:
     org.springframework.cloud: WARN
 
     com.fd: INFO
+razorpay:
+  key:
+    id: rzp_test_S096iHo0OtCLup
+    secret: jGlFutu6qa1O0z01alUTslaV

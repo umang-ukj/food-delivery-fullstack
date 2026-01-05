@@ -1,5 +1,7 @@
 package com.example.delivery.producer;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -29,6 +31,14 @@ public class DeliveryEventProducer {
 	private final KafkaTemplate<String, DeliveryEvent> kafkaTemplate;
 
     public void sendDeliveryUpdate(Long orderId, DeliveryStatus status) {
+    	Optional<Delivery> existing = deliveryRepository.findByOrderId(orderId);
+
+        if (existing.isPresent()) {
+            log.info("Delivery already processed for orderId={}, skipping", orderId);
+            return;
+        }
+
+        log.info("Processing delivery for orderId={}", orderId);
     	Delivery delivery = new Delivery();
         delivery.setOrderId(orderId);
         delivery.setStatus(status);

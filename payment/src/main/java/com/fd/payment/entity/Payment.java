@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.fd.events.PaymentMethod;
 import com.fd.events.PaymentStatus;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -41,8 +42,15 @@ public class Payment {
     private PaymentStatus status;
     
  // Razorpay fields (can be null for COD)
+    @Column(name = "razorpay_order_id")
     private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id")
     private String razorpayPaymentId;
+
+    @Column(name = "razorpay_signature")
+    private String razorpaySignature;
+
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

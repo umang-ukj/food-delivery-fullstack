@@ -3,14 +3,11 @@ package com.example.delivery.consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.example.delivery.model.DeliveryStatus;
 import com.example.delivery.producer.DeliveryEventProducer;
-import com.fd.events.DeliveryEvent;
 import com.fd.events.OrderConfirmedEvent;
-import com.fd.events.PaymentEvent;
 
 
 @Component
