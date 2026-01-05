@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.fd.events.OrderConfirmedEvent;
 import com.fd.events.OrderEvent;
 import com.fd.events.PaymentEvent;
+import com.fd.events.PaymentStatus;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.event.producer.OrderConfirmedEventProducer;
@@ -41,14 +42,13 @@ public class PaymentEventConsumer {
 		Order order = repository.findById(event.getOrderId())
 				.orElseThrow();
 
-		if ("PAID".equals(event.getStatus())) {
+		if (event.getStatus() == PaymentStatus.PAYMENT_SUCCESS) {
 
-		    if (order.getStatus() != OrderStatus.CREATED &&
-		        order.getStatus() != OrderStatus.PAYMENT_PENDING) {
-		        return;
-		    }
-
-		    order.setStatus(OrderStatus.PAID);
+			/*
+			 * if (order.getStatus() != OrderStatus.CREATED && order.getStatus() !=
+			 * OrderStatus.PAYMENT_PENDING) { return; }
+			 */
+		    order.setStatus(OrderStatus.CONFIRMED);
 		    OrderConfirmedEvent confirmedEvent =
 		            new OrderConfirmedEvent(order.getId());
 
@@ -62,14 +62,14 @@ public class PaymentEventConsumer {
 			 * // publish paid event kafkaTemplate.send( "order-events", new
 			 * OrderEvent(order.getId(), null, "PAID") );
 			 */
-		    log.info("Order {} marked as PAID and event published", order.getId());
-		    log.info("Order {} updated to PAID, triggering delivery flow", order.getId());
+		    log.info("Order {} CONFIRMED after successful payment", order.getId());
+		    log.info("Order {} confirmed, triggering delivery flow", order.getId());
 
 		}
 
-		if ("FAILED".equals(event.getStatus())) {
+		if (event.getStatus() == PaymentStatus.PAYMENT_FAILED) {
 
-		    order.setStatus(OrderStatus.FAILED);
+		    order.setStatus(OrderStatus.PAYMENT_FAILED);
 		    repository.save(order);
 
 			/*

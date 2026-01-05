@@ -12,6 +12,7 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.backoff.FixedBackOff;
 
+import com.fd.events.PaymentMethod;
 import com.fd.order.dto.CreateOrderRequest;
 import com.fd.order.dto.OrderItemRequest;
 import com.fd.order.entity.Order;
@@ -20,6 +21,7 @@ import com.fd.order.entity.OrderStatus;
 import com.fd.order.event.producer.OrderEventProducer;
 import com.fd.order.repository.OrderRepository;
 
+import ch.qos.logback.core.joran.spi.HttpUtil.RequestMethod;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -36,7 +38,10 @@ public class OrderService {
     }
 
     public Order createOrder(Long userId, CreateOrderRequest request) {
-
+		/*
+		 * PaymentMethod paymentMethod =
+		 * PaymentMethod.valueOf(request.getPaymentMethod());
+		 */
         Order order = new Order();
         order.setUserId(userId);
         order.setRestaurantId(request.getRestaurantId());
@@ -60,7 +65,7 @@ public class OrderService {
         order.setTotalAmount(total);
         Order saved = repository.save(order);
 
-        producer.publishOrderCreated(saved, request.getPaymentMethod());
+        producer.publishOrderCreated(saved,request.getPaymentMethod());
 
         return saved;
     }

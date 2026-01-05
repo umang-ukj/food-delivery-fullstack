@@ -3,12 +3,12 @@ public class OrderEvent {
     private Long orderId;
     private Double amount;
     //private String status;
-    private String paymentMethod; //cod/card/upi
+    private PaymentMethod paymentMethod; //cod/card/upi
     
-	public String getPaymentMethod() {
+	public PaymentMethod getPaymentMethod() {
 		return paymentMethod;
 	}
-	public void setPaymentMethod(String paymentMethod) {
+	public void setPaymentMethod(PaymentMethod paymentMethod) {
 		this.paymentMethod = paymentMethod;
 	}
 	public Long getOrderId() {
@@ -28,7 +28,7 @@ public class OrderEvent {
 	 * status) { this.status = status; }
 	 */
 	
-	public OrderEvent(Long orderId, Double amount, String paymentMethod) {
+	public OrderEvent(Long orderId, Double amount, PaymentMethod paymentMethod) {
 		super();
 		this.orderId = orderId;
 		this.amount = amount;

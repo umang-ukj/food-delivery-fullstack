@@ -3,14 +3,10 @@ package com.fd.events;
 public class PaymentEvent {
 
     private Long orderId;
-    private String status;
+    private PaymentStatus status;
+    private PaymentMethod method;
 
     public PaymentEvent() {
-    }
-
-    public PaymentEvent(Long orderId, String status) {
-        this.orderId = orderId;
-        this.status = status;
     }
 
     public Long getOrderId() {
@@ -21,11 +17,27 @@ public class PaymentEvent {
         this.orderId = orderId;
     }
 
-    public String getStatus() {
-        return status;
-    }
+	public PaymentStatus getStatus() {
+		return status;
+	}
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+	public void setStatus(PaymentStatus status) {
+		this.status = status;
+	}
+
+	public PaymentMethod getMethod() {
+		return method;
+	}
+
+	public void setMethod(PaymentMethod method) {
+		this.method = method;
+	}
+
+	public PaymentEvent(Long orderId, PaymentStatus status, PaymentMethod method) {
+		super();
+		this.orderId = orderId;
+		this.status = status;
+		this.method = method;
+	}
+
 }

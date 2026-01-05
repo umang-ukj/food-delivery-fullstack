@@ -6,6 +6,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fd.events.OrderEvent;
+import com.fd.events.PaymentMethod;
 import com.fd.order.entity.Order;
 
 @Component
@@ -18,7 +19,7 @@ public class OrderEventProducer {
 		this.kafkaTemplate = kafkaTemplate;
 	}
 
-	public void publishOrderCreated(Order order, String paymentMethod) {
+	public void publishOrderCreated(Order order, PaymentMethod paymentMethod) {
         OrderEvent event = new OrderEvent(
                 order.getId(),
                 order.getTotalAmount(),

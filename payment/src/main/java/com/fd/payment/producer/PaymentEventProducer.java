@@ -6,6 +6,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fd.events.PaymentEvent;
+import com.fd.events.PaymentMethod;
+import com.fd.events.PaymentStatus;
 
 
 //publish result after payment is done
@@ -20,10 +22,17 @@ public class PaymentEventProducer {
 		this.kafkaTemplate = kafkaTemplate;
 	}
 
-	public void sendPaymentResult(Long orderId, String status) {
-        PaymentEvent event = new PaymentEvent(orderId, status);
-        log.info("Publishing PAYMENT_{} event for orderId={}",status, orderId);
-
+	/*
+	 * public void sendPaymentResult(Long orderId, PaymentMethod method,
+	 * PaymentStatus status) { PaymentEvent event = new PaymentEvent(orderId,
+	 * status, method);
+	 * log.info("Publishing PAYMENT_{} event for orderId={}",status, orderId);
+	 * 
+	 * kafkaTemplate.send("payment-events", event); }
+	 */
+    
+    public void publish(PaymentEvent event) {
+    	log.info("Publishing PAYMENT_{} event for orderId={}",event.getOrderId());
         kafkaTemplate.send("payment-events", event);
     }
 }

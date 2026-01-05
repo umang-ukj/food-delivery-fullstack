@@ -2,6 +2,8 @@ package com.fd.order.dto;
 
 import java.util.List;
 
+import com.fd.events.PaymentMethod;
+
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +13,7 @@ public class CreateOrderRequest {
 
     private String restaurantId;
     private List<OrderItemRequest> items;
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
     
     public List<OrderItemRequest> getItems() {
 		return items;
@@ -29,11 +31,11 @@ public class CreateOrderRequest {
         this.restaurantId = restaurantId;
     }
 
-	public String getPaymentMethod() {
+	public PaymentMethod getPaymentMethod() {
 		return paymentMethod;
 	}
 
-	public void setPaymentMethod(String paymentMethod) {
+	public void setPaymentMethod(PaymentMethod paymentMethod) {
 		this.paymentMethod = paymentMethod;
 	}
 

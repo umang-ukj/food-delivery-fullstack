@@ -1,6 +1,13 @@
 package com.fd.payment.entity;
 
+import java.time.LocalDateTime;
+
+import com.fd.events.PaymentMethod;
+import com.fd.events.PaymentStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,10 +30,22 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;          
 
-    private Long orderId;    
-    private String paymentMethod;
+    private Long orderId;   
+    
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+    
     private Double amount;
-    private String status;
+    
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
+    
+ // Razorpay fields (can be null for COD)
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }
 

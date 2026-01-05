@@ -1,5 +1,6 @@
 package com.fd.payment.service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -8,6 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fd.events.OrderEvent;
+import com.fd.events.PaymentEvent;
+import com.fd.events.PaymentMethod;
+import com.fd.events.PaymentStatus;
+import com.fd.payment.dto.PaymentRequest;
+import com.fd.payment.dto.PaymentResponse;
 import com.fd.payment.entity.Payment;
 import com.fd.payment.producer.PaymentEventProducer;
 import com.fd.payment.repository.PaymentRepository;
@@ -27,41 +33,73 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    @Transactional
     public void processPayment(OrderEvent event) {
+        // delegate to existing logic
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderId(event.getOrderId());
+        request.setMethod(event.getPaymentMethod());
 
-        Long orderId = event.getOrderId();
-        log.info("Received ORDER_CREATED event for orderId={}", orderId);
-
-        
-        Optional<Payment> existingPayment =
-                paymentRepository.findByOrderId(orderId);
-
-        if (existingPayment.isPresent()) {
-            log.info("Payment already exists for orderId={}, skipping processing", orderId);
-            return; //  prevents Kafka retry + DB conflict
-        }
-
-        boolean paymentSuccess = simulatePayment(event.getAmount());
-        String status = paymentSuccess ? "PAID" : "FAILED";
-
-        Payment payment = new Payment();
-        payment.setOrderId(orderId);
-        payment.setAmount(event.getAmount());
-        payment.setStatus(status);
-        payment.setPaymentMethod(event.getPaymentMethod());
-
-        paymentRepository.save(payment);
-
-        log.info("Payment saved in DB for orderId={} with status={}",
-                 orderId, status);
-
-        // sends event only on successful db commit
-        producer.sendPaymentResult(orderId, status);
-        log.info("Payment event sent for orderId={}", orderId);
+        createPayment(request);
     }
 
-    private boolean simulatePayment(Double amount) {
-        return amount < 1000;
+    @Transactional
+    public PaymentResponse createPayment(PaymentRequest request) {
+
+        log.info("Creating payment for orderId={}, method={}",
+                request.getOrderId(), request.getMethod());
+
+        // Idempotency check
+        paymentRepository.findByOrderId(request.getOrderId())
+                .ifPresent(p -> {
+                    throw new IllegalStateException(
+                            "Payment already exists for orderId=" + request.getOrderId());
+                });
+
+        Payment payment = new Payment();
+        payment.setOrderId(request.getOrderId());
+        payment.setAmount(request.getAmount());
+        payment.setPaymentMethod(request.getMethod());
+        payment.setCreatedAt(LocalDateTime.now());
+
+        // DEFAULT STATE
+        payment.setStatus(PaymentStatus.PAYMENT_CREATED);
+
+        // COD shortcut (important)
+        if (request.getMethod() == PaymentMethod.CASH) {
+            payment.setStatus(PaymentStatus.PAYMENT_SUCCESS);
+        }
+        else {
+        // Online payments (Razorpay)
+        	payment.setStatus(PaymentStatus.PAYMENT_INITIATED);
+         }
+
+        Payment saved = paymentRepository.save(payment);
+
+        // Publish Kafka event
+        PaymentEvent event = new PaymentEvent(
+                saved.getOrderId(),
+                saved.getStatus(),
+                saved.getPaymentMethod()
+        );
+
+        producer.publish(event);
+
+        log.info("Payment {} saved and event published with status={}",
+                saved.getId(), saved.getStatus());
+
+        return new PaymentResponse(saved);
+    }
+
+    /**
+     * STEP 2: Query payment by order
+     */
+    public PaymentResponse getPaymentByOrder(Long orderId) {
+
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "No payment found for orderId=" + orderId));
+
+        return new PaymentResponse(payment);
     }
 }
