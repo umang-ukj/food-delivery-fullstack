@@ -4,7 +4,7 @@ let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
-let index=0;
+
 function getUserRole() {
   const token = localStorage.getItem("jwt");
   if (!token) return null;
@@ -140,12 +140,27 @@ if (getUserRole() === "admin") {
   })
   .then(res => res.json())
   .then(restaurants => {
+    if (!Array.isArray(restaurants)) {
+    console.error("Expected restaurant array, got:", restaurants);
+    return;
+  }
     const ul = document.getElementById("restaurants");
     ul.innerHTML = "";
 
     restaurants.forEach(r => {
       const li = document.createElement("li");
-      li.innerText =  `${r.name}`;
+      li.innerHTML = `
+    <div style="display:flex; gap:12px; align-items:center;">
+      <img 
+        src="${r.imageUrl || '/images/default-restaurant.png'}"
+        style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
+      />
+      <div>
+        <strong>${r.name}</strong><br/>
+        <small>${r.location}</small>
+      </div>
+    </div>
+  `;
       li.onclick = () => {
         window.location.href = `menu.html?restaurantId=${r.id}`;
       };
@@ -162,12 +177,27 @@ function loadRestaurantsByLocation(location) {
   })
   .then(res => res.json())
   .then(restaurants => {
+    if (!Array.isArray(restaurants)) {
+    console.error("Expected restaurant array, got:", restaurants);
+    return;
+  }
     const ul = document.getElementById("restaurants");
     ul.innerHTML = "";
 
     restaurants.forEach(r => {
       const li = document.createElement("li");
-      li.innerText =  `${r.name}`;
+      li.innerHTML = `
+    <div style="display:flex; gap:12px; align-items:center;">
+      <img 
+        src="${r.imageUrl || '/images/default-restaurant.png'}"
+        style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
+      />
+      <div>
+        <strong>${r.name}</strong><br/>
+        <small>${r.location}</small>
+      </div>
+    </div>
+  `;
       li.onclick = () => {
         window.location.href = `menu.html?restaurantId=${r.id}`;
       };
@@ -489,11 +519,33 @@ function loadMenu() {
 
       const menuEl = document.getElementById("menu");
       menuEl.innerHTML = "";
-
+if (!Array.isArray(r.menu)) {
+  console.error("Menu is not an array:", r.menu);
+  return;
+}
       r.menu.forEach(item => {
         const li = document.createElement("li");
 
-        li.innerHTML = `${item.name} - ₹${item.price}`;
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.gap = "12px";
+
+        li.innerHTML = `
+          <img
+            src="${item.imageUrl || '/images/default-food.png'}"
+            style="
+              width:80px;
+              height:60px;
+              object-fit:cover;
+              border-radius:6px;
+            "
+          />
+
+          <div style="flex:1">
+            <strong>${item.name}</strong><br>
+            ₹${item.price}
+          </div>
+        `;
 
 if (getUserRole() !== "admin") {
   const btn = document.createElement("button");
@@ -524,7 +576,7 @@ function renderCart() {
 
   let total = 0;
 
-  cart.forEach(item => {
+  cart.forEach((item, index) => {
     total += item.price * item.quantity;
 
     const li = document.createElement("li");
@@ -578,6 +630,10 @@ function loadLocations() {
   })
   .then(res => res.json())
   .then(locations => {
+    if (!Array.isArray(locations)) {
+      console.error("Expected array but got:", locations);
+      return;
+    }
     const dropdown = document.getElementById("locationFilter");
 
     locations.forEach(loc => {

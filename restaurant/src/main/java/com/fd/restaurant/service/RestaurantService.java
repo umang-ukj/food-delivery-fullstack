@@ -31,6 +31,9 @@ public class RestaurantService {
                 "Restaurant already exists"
             );
         }
+    	if (restaurant.getImageUrl() == null || restaurant.getImageUrl().isBlank()) {
+    	    restaurant.setImageUrl("/images/default-restaurant.png");
+    	}
 
         return repository.save(restaurant);
     }
@@ -40,13 +43,16 @@ public class RestaurantService {
     }
 
     public Restaurant addMenuItem(String restaurantId, MenuItem item) {
-    	
+    	if (item.getImageUrl() == null || item.getImageUrl().isBlank()) {
+    	    item.setImageUrl("/images/default-food.png");
+    	}
         Restaurant restaurant = repository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
         if (restaurant.getMenu() == null) {
             restaurant.setMenu(new ArrayList<>());
         }
+        
         item.setItemId(UUID.randomUUID().toString());
         
         restaurant.getMenu().add(item);

@@ -5,7 +5,10 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+@AllArgsConstructor
+@NoArgsConstructor
 public class MenuItem {
 
     private String itemId;
@@ -19,7 +22,8 @@ public class MenuItem {
     private double price;
     
     private boolean available;
-    
+    private String imageUrl;
+
 	public String getItemId() {
 		return itemId;
 	}
@@ -43,6 +47,12 @@ public class MenuItem {
 	}
 	public void setAvailable(boolean available) {
 		this.available = available;
+	}
+	public String getImageUrl() {
+		return imageUrl;
+	}
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
     
     

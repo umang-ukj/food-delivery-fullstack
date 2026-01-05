@@ -28,6 +28,7 @@ function showAddRestaurant() {
     <h3>Add Restaurant</h3>
     <input id="rname" placeholder="Restaurant Name"><br><br>
     <input id="loc" placeholder="Location"><br><br>
+    <input type="file" id="restaurantImage" accept="image/*">
     <label>
       <input type="checkbox" id="open"> Open
     </label><br><br>
@@ -35,30 +36,58 @@ function showAddRestaurant() {
   `;
 }
 
-function addRestaurant() {
+async function addRestaurant() {
   const name = document.getElementById("rname").value.trim();
   const location = document.getElementById("loc").value.trim();
-
+  const imageInput = document.getElementById("restaurantImage");
+  const imageFile = imageInput ? imageInput.files[0] : null;
   if (!name || !location) {
     alert("Restaurant name and location are required");
     return;
   }
-  fetch(`${API_BASE}/restaurants`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-      name: document.getElementById("rname").value,
-      location: document.getElementById("loc").value,
-      open: document.getElementById("open").checked
-    })
-  })
-  .then(res => {
+try {
+    //  Upload image IF admin selected one
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+
+      const uploadRes = await fetch(`${API_BASE}/restaurants/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("jwt")}`
+        },
+        body: formData
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Image upload failed");
+      }
+
+      const uploadData = await uploadRes.json();
+      imageUrl = uploadData.imageUrl;
+    }
+  const res = await fetch(`${API_BASE}/restaurants`, {
+      method: "POST",
+      headers: {
+        ...authHeaders(),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        location,
+        open,
+        imageUrl // may be null → backend sets default
+      })
+    });
     if (!res.ok) throw new Error("Forbidden");
     alert("Restaurant added");
     document.getElementById("content").innerHTML = "";
     loadRestaurants(); 
-  })
-  .catch(() => alert("Access denied"));
+  
+  } catch (err) {
+    console.error(err);
+    alert("Access denied or failed to add restaurant");
+  }
 }
 
 function showAddMenu() {
@@ -72,6 +101,7 @@ function showAddMenu() {
 
     <input id="menuName" placeholder="Item Name"><br><br>
     <input id="menuPrice" placeholder="Price"><br><br>
+    <input type="file" id="menuImage" accept="image/*">
 
     <label>
       <input type="checkbox" id="available" checked> Available
@@ -100,23 +130,46 @@ function showAddMenu() {
   .catch(() => alert("Access denied"));
 } */
 
-  function addMenuItem() {
+  async function addMenuItem() {
 
   const name = document.getElementById("menuName").value.trim();
   const price = document.getElementById("menuPrice").value;
+const imageInput = document.getElementById("menuImage");
+const imageFile = imageInput ? imageInput.files[0] : null;
+let imageUrl = null;
 
   if (!name || price <= 0) {
     alert("Valid item name and price required");
     return;
   }
-  
+  if (imageFile) {
+  const formData = new FormData();
+  formData.append("file", imageFile);
+
+  const uploadRes = await fetch(`${API_BASE}/restaurants/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: formData
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error("Menu image upload failed");
+  }
+
+  const uploadData = await uploadRes.json();
+  imageUrl = uploadData.imageUrl;
+}
+
   fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({
       name: document.getElementById("menuName").value,
       price: document.getElementById("menuPrice").value,
-      available: document.getElementById("available").checked
+      available: document.getElementById("available").checked,
+      imageUrl
     })
   })
   .then(res => {
@@ -139,7 +192,18 @@ function loadRestaurants() {
 
     restaurants.forEach(r => {
       const li = document.createElement("li");
-      li.innerText = r.name;
+      li.innerHTML = `
+    <div style="display:flex; gap:12px; align-items:center;">
+      <img 
+        src="${r.imageUrl || '/images/default-restaurant.png'}"
+        style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
+      />
+      <div>
+        <strong>${r.name}</strong><br/>
+        <small>${r.location}</small>
+      </div>
+    </div>
+  `;
       li.style.cursor = "pointer";
       li.onclick = () => selectRestaurant(r.id);
       ul.appendChild(li);
@@ -170,18 +234,40 @@ function selectRestaurant(restaurantId) {
 
     r.menu.forEach(item => {
   const li = document.createElement("li");
+
+  li.style.display = "flex";
+  li.style.alignItems = "center";
+  li.style.gap = "12px";
+
   li.innerHTML = `
-    ${item.name}
+    <img
+      src="${item.imageUrl || '/images/default-food.png'}"
+      style="
+        width:70px;
+        height:55px;
+        object-fit:cover;
+        border-radius:6px;
+        border:1px solid #ccc;
+      "
+    />
+
+    <div style="flex:1">
+      <strong>${item.name}</strong>
+    </div>
+
     <input 
-      type="number" 
-      value="${item.price}" 
+      type="number"
+      value="${item.price}"
       style="width:70px"
       onchange="updateMenuPrice('${item.itemId}', this.value)"
     />
+
     <button onclick="deleteMenuItem('${item.itemId}')">❌</button>
   `;
+
   menuUl.appendChild(li);
 });
+
 
 
     //document.getElementById("addMenuSection").style.display = "block";

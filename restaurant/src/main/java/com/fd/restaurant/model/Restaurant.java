@@ -26,7 +26,7 @@ public class Restaurant {
     @NotBlank(message = "Location is required")
     private String location;
     private boolean open;
-
+    private String imageUrl;
     private List<MenuItem> menu = new ArrayList<>();
 
 }

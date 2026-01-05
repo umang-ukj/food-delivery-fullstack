@@ -7,7 +7,9 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/restaurantdb
-
+  web:
+    resources:
+        static-locations: classpath:/static/, file:uploads/
 eureka:
   client:
     service-url:
