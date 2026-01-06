@@ -167,6 +167,8 @@ if (getUserRole() === "admin") {
       </div>
     </div>
   `;
+  li.style.cursor = "pointer";
+
       li.onclick = () => {
         window.location.href = `menu.html?restaurantId=${r.id}`;
       };
@@ -385,13 +387,47 @@ function loadOrders() {
     li.onclick = () => showOrderDetails(order.id);
     list.appendChild(li);
 }); */
-orders.forEach((order, index) => {
-  const li = document.createElement("li");
+// latest order = last element
+const latestOrder = orders[orders.length - 1];
 
+// render ONLY latest order
+renderOrderItem(latestOrder, 0, list);
+
+// compute previous orders correctly
+const previousOrders = orders.slice(0, orders.length - 1).reverse();
+
+// show toggle only if needed
+if (previousOrders.length > 0) {
+  const toggle = document.createElement("div");
+  toggle.textContent = "> View previous orders";
+  toggle.style.cursor = "pointer";
+  toggle.style.margin = "12px 0";
+  toggle.style.color = "#007bff";
+
+  let expanded = false;
+
+  toggle.onclick = () => {
+    if (expanded) return;
+    expanded = true;
+    toggle.style.display = "none";
+
+    previousOrders.forEach((order, index) => {
+      renderOrderItem(order, index + 1, list);
+    });
+  };
+
+  list.appendChild(toggle);
+}
+  });
+}
+function renderOrderItem(order, index, list) {
+  const li = document.createElement("li");
+li.style.cursor="pointer;"
   li.innerHTML = `
     <div class="order-card">
       <div class="order-summary">
-        <strong>Order #${index + 1}</strong><br/>
+        <strong>Order #${index + 1}</strong>
+        ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
         Status: ${order.status}
       </div>
 
@@ -401,22 +437,21 @@ orders.forEach((order, index) => {
         <span class="step" data-step="OUT_FOR_DELIVERY">Out for Delivery</span>
         <span class="step" data-step="DELIVERED">Delivered</span>
       </div>
+
       <div class="order-details" style="display:none">
-      <p>Loading order details...</p>
-    </div>
+        <p>Loading order details...</p>
+      </div>
     </div>
   `;
 
   li.onclick = () => toggleOrderDetails(order.id, li);
 
-const statusContainer = li.querySelector(".delivery-status");
-renderDeliveryStatus(statusContainer, order.status);
-list.appendChild(li);
-});
+  const statusContainer = li.querySelector(".delivery-status");
+  renderDeliveryStatus(statusContainer, order.status);
 
-
-  });
+  list.appendChild(li);
 }
+
 function toggleOrderDetails(orderId, orderElement) {
 
   const detailsDiv = orderElement.querySelector(".order-details");
