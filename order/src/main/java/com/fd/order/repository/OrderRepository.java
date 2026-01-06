@@ -30,7 +30,17 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
       and o.status <> com.fd.order.entity.OrderStatus.CONFIRMED
     """)
     int confirmIfNotConfirmed(@Param("orderId") Long orderId);
+ 
+    List<Order> findByUserIdAndStatusNot(Long userId, OrderStatus status);
 
+    @Modifying
+    @Query("""
+        update Order o
+        set o.status = 'CANCELLED'
+        where o.id = :orderId
+          and o.status not in ('CONFIRMED', 'CANCELLED')
+    """)
+    int cancelIfNotFinal(@Param("orderId") Long orderId);
 
 
 }

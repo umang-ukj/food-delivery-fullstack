@@ -64,21 +64,15 @@ public class PaymentService {
 
         if (existing.isPresent()) {
             Payment payment = existing.get();
-         // Re-publish event ONLY if status is terminal
-            if (payment.getStatus() == PaymentStatus.PAYMENT_SUCCESS ||
-                payment.getStatus() == PaymentStatus.PAYMENT_FAILED) {
-
-                producer.publish(payment);
-            }
-
             log.info("Payment already exists for orderId={}, returning existing payment",
                     request.getOrderId());
-
+         // Re-publish event ONLY if status is terminal
             return new PaymentResponse(
                     payment.getId(),
                     payment.getStatus(),
                     payment.getPaymentMethod()
             );
+     
         }
 
         // 🆕 Create new payment
@@ -100,10 +94,12 @@ public class PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
-        // 📤 Publish Kafka event ONCE
-        producer.publish(saved);
+        //  Publish Kafka event ONCE and only for cash
+        if (saved.getPaymentMethod() == PaymentMethod.CASH) {
+            producer.publish(saved);
+        }
 
-        log.info("Payment {} saved and event published with status={}",
+        log.info("Payment {} saved with status={}",
                 saved.getId(), saved.getStatus());
 
         return new PaymentResponse(saved);
@@ -122,8 +118,12 @@ public class PaymentService {
     @Transactional
     public RazorpayOrderResponse createRazorpayOrder(Long orderId, Double amount) {
 
-        Payment payment = paymentRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new RuntimeException("Payment not found for orderId " + orderId));
+    	Payment payment = paymentRepository.findByOrderId(orderId)
+    			.orElseThrow(() ->
+                new IllegalStateException(
+                    "Payment not created yet for orderId=" + orderId
+                )
+            );
 
         // Idempotency: Razorpay order already created
         if (payment.getRazorpayOrderId() != null) {
@@ -169,6 +169,19 @@ public class PaymentService {
                 .findByRazorpayOrderId(request.getRazorpayOrderId())
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
+        try {
+            //  Verify signature
+            boolean isValid = Utils.verifyPaymentSignature(
+                    new JSONObject()
+                            .put("razorpay_payment_id", request.getRazorpayPaymentId())
+                            .put("razorpay_order_id", request.getRazorpayOrderId())
+                            .put("razorpay_signature", request.getRazorpaySignature()),razorpaySecret);
+        
+
+            if (!isValid) {
+                throw new IllegalStateException("Invalid Razorpay signature");
+            }
+            
         boolean updated = paymentRepository.updateStatusIfChanged(
                 payment.getId(),
                 PaymentStatus.PAYMENT_SUCCESS
@@ -182,8 +195,28 @@ public class PaymentService {
 
         payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
         payment.setRazorpaySignature(request.getRazorpaySignature());
-
         producer.publish(payment);
+        log.info("Payment SUCCESS for orderId={}", payment.getOrderId());
+
+        } catch (Exception ex) {
+
+            // ❌ PAYMENT FAILED
+            payment.setStatus(PaymentStatus.PAYMENT_FAILED);
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+
+            // 🔥 VERY IMPORTANT LOG
+            log.error(
+                "Payment FAILED for orderId={}, reason={}",
+                payment.getOrderId(),
+                ex.getMessage()
+            );
+
+            // 📣 Publish PAYMENT_FAILED event
+            producer.publish(payment);
+
+            throw new RuntimeException("Payment verification failed", ex);
+        }
     }
 
     @Transactional
@@ -196,12 +229,12 @@ public class PaymentService {
         payment.setRazorpayPaymentId(paymentId);
         paymentRepository.save(payment);
 
-		/*
-		 * PaymentEvent event = new PaymentEvent( orderId,
-		 * PaymentStatus.PAYMENT_SUCCESS, payment.getPaymentMethod() );
-		 * 
-		 * producer.publish(payment);
-		 */
+		
+		  PaymentEvent event = new PaymentEvent( orderId,
+		  PaymentStatus.PAYMENT_SUCCESS, payment.getPaymentMethod() );
+		  log.info("Payment SUCCESS for orderId={}", payment.getOrderId());
+		  producer.publish(payment);
+		 
     }
     @Transactional
     public void markFailed(Long orderId) {
@@ -219,5 +252,20 @@ public class PaymentService {
 		 * producer.publish(payment);
 		 */
     }
+    @Transactional
+    public void markPaymentFailed(Long orderId, String razorpayOrderId) {
+
+        Payment payment = paymentRepository
+            .findByOrderId(orderId)
+            .orElseThrow();
+
+        payment.setStatus(PaymentStatus.PAYMENT_FAILED);
+        paymentRepository.save(payment);
+
+        log.error("Payment FAILED for orderId={}", orderId);
+
+        producer.publish(payment); // PAYMENT_FAILED event
+    }
+
 
 }

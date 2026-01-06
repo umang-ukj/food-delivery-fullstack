@@ -33,7 +33,7 @@ public class PaymentEventProducer {
 	 */
     
     public void publish(Payment payment) {
-    	PaymentEvent event = new PaymentEvent(payment.getOrderId(),PaymentStatus.PAYMENT_SUCCESS,payment.getPaymentMethod());
+    	PaymentEvent event = new PaymentEvent(payment.getOrderId(),payment.getStatus(),payment.getPaymentMethod());
     	log.info("Publishing PAYMENT_{} event for orderId={}",event.getOrderId());
         kafkaTemplate.send("payment-events", event);
     }

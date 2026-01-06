@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import com.fd.events.OrderCancelledEvent;
 import com.fd.events.OrderEvent;
 import com.fd.events.PaymentMethod;
 import com.fd.order.entity.Order;
@@ -29,4 +30,10 @@ public class OrderEventProducer {
 
         kafkaTemplate.send("order-events", event);
     }
+	public void publishOrderCancelled(Long orderId) {
+		
+	    log.info("Publishing ORDER_CANCELLED event for orderId={}", orderId);
+	    kafkaTemplate.send("order-events",new OrderCancelledEvent(orderId));
+	}
+
 }

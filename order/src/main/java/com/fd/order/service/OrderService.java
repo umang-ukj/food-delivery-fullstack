@@ -98,6 +98,8 @@ public class OrderService {
 	public Order save(Order order) {
 		return repository.save(order);
 	}
-
+	public List<Order> getOrdersForUser(Long userId) {
+	    return repository.findByUserIdAndStatusNot(userId,OrderStatus.CANCELLED);
+	}
 
 }

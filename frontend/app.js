@@ -308,8 +308,9 @@ if (!paymentMethod) {
   }
 
   // ONLINE PAYMENT → Razorpay
+  setTimeout(() => {
   startRazorpayPayment(order.id, order.totalAmount);
-    
+}, 500);
   })
   .catch(err => {
     console.error(err);
@@ -887,22 +888,39 @@ function getSelectedPaymentMethod() {
   return selected ? selected.value : null;
 }
 
-function startRazorpayPayment(orderId, amount) {
+async function startRazorpayPayment(orderId, amount, retries = 5) {
+  try {
+    const res = await fetch(`${API_BASE}/payments/razorpay/order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+      },
+      body: JSON.stringify({
+        orderId: orderId,
+        amount: amount
+      })
+    });
 
-  fetch(`${API_BASE}/payments/razorpay/order`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
-    },
-    body: JSON.stringify({
-      orderId: orderId,
-      amount: amount
-    })
-  })
-  .then(res => res.json())
-  .then(data => openRazorpayCheckout(data, orderId));
+    if (!res.ok) {
+      throw new Error("Payment not ready yet");
+    }
+
+    const data = await res.json();
+    openRazorpayCheckout(data, orderId);
+
+  } catch (err) {
+    if (retries > 0) {
+      console.log("Waiting for payment creation… retrying");
+      setTimeout(() => {
+        startRazorpayPayment(orderId, amount, retries - 1);
+      }, 300);
+    } else {
+      alert("Payment service not ready. Please try again.");
+    }
+  }
 }
+
 function openRazorpayCheckout(data, orderId) {
 
   const options = {
@@ -919,15 +937,35 @@ function openRazorpayCheckout(data, orderId) {
     response.razorpay_order_id,
     response.razorpay_signature
   );
-    },
+    },modal: {
+    ondismiss: function () {
+      notifyPaymentFailure(orderId, data.razorpayOrderId);
+    }
+  }
 
-    theme: {
+    ,theme: {
       color: "#3399cc"
     }
   };
 
   const rzp = new Razorpay(options);
   rzp.open();
+}
+function notifyPaymentFailure(orderId, razorpayOrderId) {
+  fetch(`${API_BASE}/payments/razorpay/failure`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: JSON.stringify({
+      orderId: orderId,
+      razorpayOrderId: razorpayOrderId
+    })
+  });
+
+  alert("Payment failed. Order was not placed.");
+  window.location.href = "menu.html";
 }
 
 function verifyPaymentOnBackend(orderId, paymentId, razorpayOrderId, signature) {
@@ -945,16 +983,19 @@ function verifyPaymentOnBackend(orderId, paymentId, razorpayOrderId, signature) 
     })
   })
   .then(res => {
+    //payment failed
     if (!res.ok) throw new Error("Payment verification failed");
     return ;
   })
   .then(() => {
-    // Redirect AFTER verification
+    // Redirect AFTER verification(payment success)
     window.location.href = `orders.html?orderId=${orderId}`;
   })
   .catch(err => {
     console.error(err);
     alert("Payment verification failed");
+    window.location.href = "menu.html";
+
   });
 }
 

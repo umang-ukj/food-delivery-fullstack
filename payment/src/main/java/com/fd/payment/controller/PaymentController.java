@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fd.payment.dto.PaymentFailureRequest;
 import com.fd.payment.dto.PaymentRequest;
 import com.fd.payment.dto.PaymentResponse;
 import com.fd.payment.dto.RazorpayOrderRequest;
@@ -72,6 +73,17 @@ public class PaymentController {
         paymentService.markSuccess(
                 request.getOrderId(),
                 request.getRazorpayPaymentId()
+        );
+
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/razorpay/failure")
+    public ResponseEntity<Void> paymentFailed(
+            @RequestBody PaymentFailureRequest request) {
+
+        paymentService.markPaymentFailed(
+            request.getOrderId(),
+            request.getRazorpayOrderId()
         );
 
         return ResponseEntity.ok().build();

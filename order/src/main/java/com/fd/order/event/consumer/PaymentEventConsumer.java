@@ -14,6 +14,7 @@ import com.fd.events.PaymentStatus;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.event.producer.OrderConfirmedEventProducer;
+import com.fd.order.event.producer.OrderEventProducer;
 import com.fd.order.repository.OrderRepository;
 
 import jakarta.transaction.Transactional;
@@ -26,12 +27,14 @@ public class PaymentEventConsumer {
 	private final OrderConfirmedEventProducer orderConfirmedEventProducer;
 	private final OrderRepository repository;
 	private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
-
+    private final OrderEventProducer orderEventProducer;
+    
 	public PaymentEventConsumer(OrderRepository repository, KafkaTemplate<String, OrderEvent> kafkaTemplate,
-			OrderConfirmedEventProducer orderConfirmedEventProducer) {
+			OrderConfirmedEventProducer orderConfirmedEventProducer, OrderEventProducer orderEventProducer) {
 		this.repository = repository;
 		this.kafkaTemplate = kafkaTemplate;
 		this.orderConfirmedEventProducer = orderConfirmedEventProducer;
+		this.orderEventProducer=orderEventProducer;
 	}
 
 	/*
@@ -71,7 +74,22 @@ public class PaymentEventConsumer {
 	@Transactional
 	@KafkaListener(topics = "payment-events", containerFactory = "paymentKafkaListenerContainerFactory")
 	public void handlePaymentEvent(PaymentEvent event) {
+		
+		// ONLINE PAYMENT FAILED → CANCEL ORDER
+	    if (event.getMethod() != PaymentMethod.CASH &&
+	        event.getStatus() == PaymentStatus.PAYMENT_FAILED) {
 
+	        int cancelled = repository.cancelIfNotFinal(event.getOrderId());
+
+	        if (cancelled > 0) {
+	        	orderEventProducer.publishOrderCancelled(event.getOrderId());
+	            log.info("Order {} cancelled due to payment failure", event.getOrderId());
+	        } else {
+	            log.info("Order {} already final. Skipping cancel.", event.getOrderId());
+	        }
+	        return;
+	    }
+	    
 		// Ignore non-success ONLINE payments
 		if (event.getMethod() != PaymentMethod.CASH && event.getStatus() != PaymentStatus.PAYMENT_SUCCESS) {
 			return;
