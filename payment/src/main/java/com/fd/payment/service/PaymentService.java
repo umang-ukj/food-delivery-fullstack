@@ -64,6 +64,12 @@ public class PaymentService {
 
         if (existing.isPresent()) {
             Payment payment = existing.get();
+         // Re-publish event ONLY if status is terminal
+            if (payment.getStatus() == PaymentStatus.PAYMENT_SUCCESS ||
+                payment.getStatus() == PaymentStatus.PAYMENT_FAILED) {
+
+                producer.publish(payment);
+            }
 
             log.info("Payment already exists for orderId={}, returning existing payment",
                     request.getOrderId());
@@ -156,47 +162,30 @@ public class PaymentService {
         }
     }
 
+    @Transactional
     public void verifyRazorpayPayment(RazorpayVerifyRequest request) {
 
-        try {
-            Payment payment = paymentRepository
-                    .findByRazorpayOrderId(request.getRazorpayOrderId())
-                    .orElseThrow(() -> new RuntimeException("Payment not found"));
+        Payment payment = paymentRepository
+                .findByRazorpayOrderId(request.getRazorpayOrderId())
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-            // Prevent double processing (idempotency)
-            if (payment.getStatus() == PaymentStatus.PAYMENT_SUCCESS) {
-                return;
-            }
+        boolean updated = paymentRepository.updateStatusIfChanged(
+                payment.getId(),
+                PaymentStatus.PAYMENT_SUCCESS
+        ) == 1;
 
-            String payload = request.getRazorpayOrderId() + "|"
-                    + request.getRazorpayPaymentId();
-
-            boolean isValid = Utils.verifySignature(
-                    payload,
-                    request.getRazorpaySignature(),
-                    razorpaySecret
-            );
-
-            if (!isValid) {
-                payment.setStatus(PaymentStatus.PAYMENT_FAILED);
-                paymentRepository.save(payment);
-                throw new RuntimeException("Invalid Razorpay signature");
-            }
-
-            // Payment verified
-            payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
-            payment.setRazorpaySignature(request.getRazorpaySignature());
-            payment.setStatus(PaymentStatus.PAYMENT_SUCCESS);
-            payment.setUpdatedAt(LocalDateTime.now());
-            paymentRepository.save(payment);
-
-            //  Publish Kafka event
-            producer.publish(payment);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Payment verification failed", e);
+        if (!updated) {
+            log.info("Payment already SUCCESS for orderId={}, skipping publish",
+                     payment.getOrderId());
+            return;
         }
+
+        payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
+        payment.setRazorpaySignature(request.getRazorpaySignature());
+
+        producer.publish(payment);
     }
+
     @Transactional
     public void markSuccess(Long orderId, String paymentId) {
 
@@ -207,13 +196,12 @@ public class PaymentService {
         payment.setRazorpayPaymentId(paymentId);
         paymentRepository.save(payment);
 
-        PaymentEvent event = new PaymentEvent(
-                orderId,
-                PaymentStatus.PAYMENT_SUCCESS,
-                payment.getPaymentMethod()
-        );
-
-        producer.publish(payment);
+		/*
+		 * PaymentEvent event = new PaymentEvent( orderId,
+		 * PaymentStatus.PAYMENT_SUCCESS, payment.getPaymentMethod() );
+		 * 
+		 * producer.publish(payment);
+		 */
     }
     @Transactional
     public void markFailed(Long orderId) {
@@ -224,13 +212,12 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.PAYMENT_FAILED);
         paymentRepository.save(payment);
 
-        PaymentEvent event = new PaymentEvent(
-                orderId,
-                PaymentStatus.PAYMENT_FAILED,
-                payment.getPaymentMethod()
-        );
-
-        producer.publish(payment);
+		/*
+		 * PaymentEvent event = new PaymentEvent( orderId, PaymentStatus.PAYMENT_FAILED,
+		 * payment.getPaymentMethod() );
+		 * 
+		 * producer.publish(payment);
+		 */
     }
 
 }

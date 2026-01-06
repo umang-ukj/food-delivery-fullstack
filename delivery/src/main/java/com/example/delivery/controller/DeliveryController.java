@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.delivery.model.DeliveryStatus;
 import com.example.delivery.service.DeliveryService;
+import com.fd.events.DeliveryStatus;
 @RestController
 @RequestMapping("/delivery")
 public class DeliveryController {
@@ -19,7 +19,7 @@ public class DeliveryController {
 	        @PathVariable Long orderId,
 	        @RequestParam DeliveryStatus status) {
 
-	    service.updateStatus(orderId, status);
+	    service.update(orderId, status);
 	    return ResponseEntity.ok().build();
 	}
 

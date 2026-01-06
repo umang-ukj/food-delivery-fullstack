@@ -1,4 +1,4 @@
-package com.example.delivery.model;
+package com.fd.events;
 
 public enum DeliveryStatus {
 	CREATED,

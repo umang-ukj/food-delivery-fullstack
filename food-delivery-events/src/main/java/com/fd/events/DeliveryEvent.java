@@ -3,20 +3,20 @@ package com.fd.events;
 
 public class DeliveryEvent {
     private Long orderId;
-    private String status;
+    private DeliveryStatus status;
 	public Long getOrderId() {
 		return orderId;
 	}
 	public void setOrderId(Long orderId) {
 		this.orderId = orderId;
 	}
-	public String getStatus() {
+	public DeliveryStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(DeliveryStatus status) {
 		this.status = status;
 	}
-	public DeliveryEvent(Long orderId, String status) {
+	public DeliveryEvent(Long orderId, DeliveryStatus status) {
 		super();
 		this.orderId = orderId;
 		this.status = status;

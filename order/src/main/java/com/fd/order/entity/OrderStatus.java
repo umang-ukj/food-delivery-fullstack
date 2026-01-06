@@ -3,7 +3,7 @@ package com.fd.order.entity;
 public enum OrderStatus {
 	CREATED,
 	CONFIRMED,
-	PAYMENT_FAILED,
+	PICKED_UP,
 	OUT_FOR_DELIVERY,
     DELIVERED,
 }

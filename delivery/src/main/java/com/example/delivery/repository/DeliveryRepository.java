@@ -10,6 +10,8 @@ import com.example.delivery.model.Delivery;
 @Repository
 public interface DeliveryRepository extends JpaRepository<Delivery, Long>{
 
-	Optional<Delivery> findByOrderId(Long orderId);
+	//Optional<Delivery> findByOrderId(Long orderId);
+
+	Optional<Delivery> findFirstByOrderId(Long orderId);
 
 }

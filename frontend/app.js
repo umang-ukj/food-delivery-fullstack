@@ -97,12 +97,18 @@ function pollOrderStatus(orderId) {
         console.log("Status changed to:", order.status);
       }
       //  STOP on terminal states
+      /* if (
+        order.status === "PAID" ||
+        order.status === "DELIVERED" ||
+        order.status === "FAILED" ||
+        order.status === "CANCELLED"
+      )  */
       if (
         order.status === "PAID" ||
         order.status === "DELIVERED" ||
         order.status === "FAILED" ||
         order.status === "CANCELLED"
-      ) {
+      ){
         clearInterval(interval);
         console.log("Polling stopped: final state");
       }
@@ -315,7 +321,7 @@ if (!paymentMethod) {
 function renderDeliveryStatus(container, finalStatus) {
   if (!container || !finalStatus) return;
 
-  const steps = ["CREATED", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"];
+  const steps = ["CONFIRMED", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"];
   const targetIndex = steps.indexOf(finalStatus);
 
   const stepEls = Array.from(container.querySelectorAll(".step"));
@@ -338,7 +344,7 @@ function renderDeliveryStatus(container, finalStatus) {
     stepEls[current].style.opacity = "1";
 
     current++;
-  }, 700); //  visible transition
+  }, 400);
 }
 
 
@@ -402,7 +408,8 @@ orders.forEach((order, index) => {
 
   li.onclick = () => toggleOrderDetails(order.id, li);
 
-  renderDeliveryStatus(li, order.status);
+const statusContainer = li.querySelector(".delivery-status");
+renderDeliveryStatus(statusContainer, order.status);
 list.appendChild(li);
 });
 

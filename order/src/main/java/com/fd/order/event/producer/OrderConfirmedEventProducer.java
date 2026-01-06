@@ -22,7 +22,7 @@ public class OrderConfirmedEventProducer {
 
     public void publish(OrderConfirmedEvent event) {
         kafkaTemplate.send("order-confirmed-events",event);
-        log.info("Publishing ORDER_CONFIRMED event for orderId={}", event);
+        log.info("Publishing ORDER_CONFIRMED event for orderId={}", event.getOrderId());
 
     }
 }

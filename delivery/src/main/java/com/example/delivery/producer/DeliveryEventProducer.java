@@ -8,7 +8,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.example.delivery.model.Delivery;
-import com.example.delivery.model.DeliveryStatus;
 import com.example.delivery.repository.DeliveryRepository;
 import com.fd.events.DeliveryEvent;
 
@@ -30,26 +29,22 @@ public class DeliveryEventProducer {
 
 	private final KafkaTemplate<String, DeliveryEvent> kafkaTemplate;
 
-    public void sendDeliveryUpdate(Long orderId, DeliveryStatus status) {
-    	Optional<Delivery> existing = deliveryRepository.findByOrderId(orderId);
-
-        if (existing.isPresent()) {
-            log.info("Delivery already processed for orderId={}, skipping", orderId);
-            return;
-        }
-
-        log.info("Processing delivery for orderId={}", orderId);
-    	Delivery delivery = new Delivery();
-        delivery.setOrderId(orderId);
-        delivery.setStatus(status);
-        deliveryRepository.save(delivery);
-        log.info("Publishing DELIVERY_{} event for orderId={}", status, orderId);
-
-        DeliveryEvent event = new DeliveryEvent(orderId, status.name());
-        kafkaTemplate.send(
-        	    "delivery-events",
-        	    event
-        	);
-
-    }
-}
+	/*
+	 * public void sendDeliveryUpdate(Long orderId, DeliveryStatus status) {
+	 * 
+	 * 
+	 * log.info("Processing delivery for orderId={}", orderId); Delivery delivery =
+	 * new Delivery(); delivery.setOrderId(orderId); delivery.setStatus(status);
+	 * deliveryRepository.save(delivery);
+	 * log.info("Publishing DELIVERY_{} event for orderId={}", status, orderId);
+	 * 
+	 * DeliveryEvent event = new DeliveryEvent(orderId, status.name());
+	 * kafkaTemplate.send( "delivery-events", event );
+	 * 
+	 * }
+	 */
+    public void publish(DeliveryEvent event) {
+    	log.info("Publishing DELIVERY event {} for orderId={}",
+                event.getStatus(), event.getOrderId());
+        kafkaTemplate.send("delivery-events", event);
+    }}
