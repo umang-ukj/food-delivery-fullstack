@@ -21,7 +21,7 @@ public class MenuItem {
     @Positive(message = "Price must be greater than 0")
     private double price;
     
-    private boolean available;
+    private Boolean available;
     private String imageUrl;
 
 	public String getItemId() {
@@ -45,7 +45,7 @@ public class MenuItem {
 	public boolean isAvailable() {
 		return available;
 	}
-	public void setAvailable(boolean available) {
+	public void setAvailable(Boolean available) {
 		this.available = available;
 	}
 	public String getImageUrl() {

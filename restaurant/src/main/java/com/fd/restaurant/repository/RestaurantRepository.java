@@ -14,6 +14,7 @@ public interface RestaurantRepository extends MongoRepository<Restaurant, String
     
     @Query(value = "{}", fields = "{ 'location' : 1 }")
     List<Restaurant> findAllLocations();
+    List<Restaurant> findByDeletedFalse();;
 
 
 }

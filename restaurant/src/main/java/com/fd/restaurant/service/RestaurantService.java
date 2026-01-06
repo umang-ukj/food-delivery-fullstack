@@ -5,9 +5,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fd.restaurant.dto.MenuItemRequest;
 import com.fd.restaurant.model.MenuItem;
@@ -108,6 +112,33 @@ public class RestaurantService {
 	            .map(Restaurant::getLocation).filter(Objects::nonNull).map(String::trim)
 	            .distinct().sorted().toList();
 	}
+	
+	@Configuration
+	public class StaticResourceConfig implements WebMvcConfigurer {
+
+	    @Override
+	    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+	        registry.addResourceHandler("/uploads/**")
+	                .addResourceLocations("file:uploads/");
+	    }
+	}
+	
+	@Transactional
+	public void deleteRestaurant(String restaurantId) {
+
+	    Restaurant restaurant = repository.findById(restaurantId)
+	        .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+	    // Soft delete restaurant
+	    restaurant.setDeleted(true);
+	    repository.save(restaurant);
+
+	    // Hard delete menus
+	    repository.deleteById(restaurantId);
+
+	    //log.info("Restaurant {} soft-deleted, menus removed", restaurantId);
+	}
+
 
 }
 

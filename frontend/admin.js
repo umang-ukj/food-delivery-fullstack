@@ -41,6 +41,8 @@ async function addRestaurant() {
   const location = document.getElementById("loc").value.trim();
   const imageInput = document.getElementById("restaurantImage");
   const imageFile = imageInput ? imageInput.files[0] : null;
+  let imageUrl = null;   
+  let open = true; 
   if (!name || !location) {
     alert("Restaurant name and location are required");
     return;
@@ -195,13 +197,22 @@ function loadRestaurants() {
       li.innerHTML = `
     <div style="display:flex; gap:12px; align-items:center;">
       <img 
-        src="${r.imageUrl || '/images/default-restaurant.png'}"
+        src="${
+    r.imageUrl 
+      ? `http://localhost:8082${r.imageUrl}` 
+      : '/images/default-restaurant.png'
+  }"
         style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
       />
       <div>
         <strong>${r.name}</strong><br/>
         <small>${r.location}</small>
       </div>
+      <button 
+      style="background:#d9534f;color:white;border:none;padding:6px 10px;"
+      onclick="deleteRestaurant('${r.id}')">
+      Delete
+    </button>
     </div>
   `;
       li.style.cursor = "pointer";
@@ -209,6 +220,37 @@ function loadRestaurants() {
       ul.appendChild(li);
     });
   });
+}
+async function deleteRestaurant(restaurantId) {
+  const confirm1 = confirm(
+    "This will delete the restaurant and all its menu items."
+  );
+  if (!confirm1) return;
+
+  const confirm2 = prompt("Type DELETE to confirm");
+  if (confirm2 !== "DELETE") {
+    alert("Deletion cancelled");
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/restaurants/${restaurantId}`,
+      {
+        method: "DELETE",
+        headers: authHeaders()
+      }
+    );
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    alert("Restaurant deleted");
+    loadRestaurants();
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete restaurant");
+  }
 }
 
 function selectRestaurant(restaurantId) {
