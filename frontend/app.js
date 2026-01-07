@@ -1040,6 +1040,12 @@ function verifyPaymentOnBackend(orderId, paymentId, razorpayOrderId, signature) 
 function searchRestaurants() {
   const query = document.getElementById("searchInput").value.trim();
 
+  if (query.length === 0) {
+  document.getElementById("searchSuggestions").innerHTML = "";
+  loadRestaurants();
+  return;
+}
+
   // fallback → load all
   if (query.length === 0) {
     loadRestaurants();
@@ -1057,7 +1063,11 @@ function searchRestaurants() {
       }
     })
       .then(res => res.json())
-      .then(renderSearchResults)
+      .then(results => {
+        renderSearchResults(results);
+        renderSuggestions(results);
+})
+
       .catch(err => console.error("Search failed", err));
   }, 300);
 }
@@ -1113,5 +1123,35 @@ function renderSearchResults(results) {
     };
 
     ul.appendChild(li);
+  });
+}
+//autofill functionality
+function renderSuggestions(results) {
+  const box = document.getElementById("searchSuggestions");
+  box.innerHTML = "";
+  if (!Array.isArray(results) || results.length === 0) return;
+
+  results.slice(0, 5).forEach(r => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.innerHTML = `
+  <strong>${r.restaurantName}</strong>
+  ${
+    Array.isArray(r.matchedMenus) && r.matchedMenus.length > 0
+      ? `<div style="font-size:12px; color:gray;">
+           ${r.matchedMenus.join(", ")}
+         </div>`
+      : ""
+  }
+`;
+
+
+    div.onclick = () => {
+      document.getElementById("searchInput").value = r.restaurantName;
+      box.innerHTML = "";
+      window.location.href = `menu.html?restaurantId=${r.restaurantId}`;
+    };
+
+    box.appendChild(div);
   });
 }
