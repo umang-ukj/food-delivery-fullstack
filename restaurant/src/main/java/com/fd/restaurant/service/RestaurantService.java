@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fd.restaurant.dto.MenuItemRequest;
+import com.fd.restaurant.dto.SearchResponse;
 import com.fd.restaurant.model.MenuItem;
 import com.fd.restaurant.model.Restaurant;
 import com.fd.restaurant.repository.RestaurantRepository;
@@ -22,7 +24,6 @@ import com.fd.restaurant.repository.RestaurantRepository;
 public class RestaurantService {
 
     private final RestaurantRepository repository;
-
     public RestaurantService(RestaurantRepository repository) {
         this.repository = repository;
     }
@@ -138,7 +139,33 @@ public class RestaurantService {
 
 	    //log.info("Restaurant {} soft-deleted, menus removed", restaurantId);
 	}
+//search service, searches for texts from both restaurants and menu db's and returns them
+	public List<SearchResponse> search(String query) {
 
+	    List<Restaurant> restaurants = repository.search(query);
+
+	    if (restaurants == null) {
+	        return List.of();
+	    }
+
+	    return restaurants.stream()
+	        .map(r -> {
+	            List<String> matchedMenus = r.getMenu() == null
+	                ? List.of()
+	                : r.getMenu().stream()
+	                    .filter(m -> m.getName().toLowerCase().contains(query.toLowerCase()))
+	                    .map(MenuItem::getName)
+	                    .toList();
+
+	            return new SearchResponse(
+	                r.getId(),
+	                r.getName(),
+	                r.getLocation(),
+	                matchedMenus
+	            );
+	        })
+	        .toList();
+	}
 
 }
 

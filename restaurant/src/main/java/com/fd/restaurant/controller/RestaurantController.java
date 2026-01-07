@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fd.restaurant.config.JwtUtil;
 import com.fd.restaurant.dto.MenuItemRequest;
+import com.fd.restaurant.dto.SearchResponse;
 import com.fd.restaurant.model.MenuItem;
 import com.fd.restaurant.model.Restaurant;
 import com.fd.restaurant.service.RestaurantService;
@@ -170,5 +171,10 @@ public class RestaurantController {
         service.deleteRestaurant(id);
         return ResponseEntity.noContent().build();
     }
-
+    @GetMapping("/search")
+    public List<SearchResponse> searchRestaurants(
+            @RequestParam("q") String query
+    ) {
+        return service.search(query);
+    }
 }

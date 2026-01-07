@@ -1,6 +1,7 @@
 package com.fd.restaurant.model;
 
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class MenuItem {
 
     private String itemId;
-    
+    @TextIndexed
     @NotBlank(message = "Item name is required")
     @Indexed(unique = true)
     private String name;

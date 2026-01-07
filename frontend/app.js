@@ -4,6 +4,7 @@ let selectedRestaurantId = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
+let searchTimeout = null;
 
 function getUserRole() {
   const token = localStorage.getItem("jwt");
@@ -1035,3 +1036,82 @@ function verifyPaymentOnBackend(orderId, paymentId, razorpayOrderId, signature) 
 }
 
 
+
+function searchRestaurants() {
+  const query = document.getElementById("searchInput").value.trim();
+
+  // fallback → load all
+  if (query.length === 0) {
+    loadRestaurants();
+    return;
+  }
+
+  // debounce
+  clearTimeout(searchTimeout);
+
+  searchTimeout = setTimeout(() => {
+    fetch(`${API_BASE}/restaurants/search?q=${encodeURIComponent(query)}`, {
+      headers: {
+        "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+      }
+    })
+      .then(res => res.json())
+      .then(renderSearchResults)
+      .catch(err => console.error("Search failed", err));
+  }, 300);
+}
+
+function renderSearchResults(results) {
+  const ul = document.getElementById("restaurants");
+  ul.innerHTML = "";
+
+  if (!Array.isArray(results)) {
+    console.error("Search API did not return array:", results);
+    ul.innerHTML = "<li>Search error</li>";
+    return;
+  }
+
+  if (results.length === 0) {
+    ul.innerHTML = "<li>No results found</li>";
+    return;
+  }
+
+  results.forEach(r => {
+    const li = document.createElement("li");
+    li.style.cursor = "pointer";
+
+    li.innerHTML = `
+      <div style="display:flex; gap:12px; align-items:center;">
+        <img 
+  src="${r.imageUrl || '/images/default-restaurant.png'}"
+  style="
+    width:80px;
+    height:80px;
+    object-fit:cover;
+    border-radius:8px;
+  "
+/>
+
+        <div>
+          <strong>${r.restaurantName}</strong><br/>
+          <small>${r.location}</small>
+
+          ${
+            r.matchedMenus.length > 0
+              ? `<div style="color:green;font-size:13px;">
+                   Matches: ${r.matchedMenus.join(", ")}
+                 </div>`
+              : ""
+          }
+        </div>
+      </div>
+    `;
+
+    li.onclick = () => {
+      window.location.href = `menu.html?restaurantId=${r.restaurantId}`;
+    };
+
+    ul.appendChild(li);
+  });
+}

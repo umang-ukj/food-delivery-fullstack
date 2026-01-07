@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +22,10 @@ public class Restaurant {
 
     @Id
     private String id;
+    //textindex is mongodb specific annotation, which helps in search. 
+    //even if we don't know full word and type only part of it, it returns the matches
+    //adding this for our search option
+    @TextIndexed
     @NotBlank(message = "Restaurant name is required")
     private String name;
     @NotBlank(message = "Location is required")
