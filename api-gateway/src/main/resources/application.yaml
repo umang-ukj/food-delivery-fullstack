@@ -36,10 +36,14 @@ management:
   endpoint:
     gateway:
       enabled: true
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,metrics,prometheus
   security:
     enabled: false
+
+    
     

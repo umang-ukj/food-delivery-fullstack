@@ -36,6 +36,11 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency>
+
+		<dependency>
     <groupId>com.fd</groupId>
     <artifactId>food-delivery-events</artifactId>
     <version>0.0.1-SNAPSHOT</version>
