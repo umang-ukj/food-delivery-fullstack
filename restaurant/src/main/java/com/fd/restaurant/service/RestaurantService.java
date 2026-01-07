@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,12 +24,15 @@ import com.fd.restaurant.repository.RestaurantRepository;
 
 @Service
 public class RestaurantService {
-
+	
+	private static final Logger log = LoggerFactory.getLogger(RestaurantService.class);
+	
     private final RestaurantRepository repository;
     public RestaurantService(RestaurantRepository repository) {
         this.repository = repository;
     }
-
+    
+    @CacheEvict(value = { "restaurants", "restaurant-search" },allEntries = true)
     public Restaurant addRestaurant(Restaurant restaurant) {
     	
     	if (repository.existsByNameIgnoreCase(restaurant.getName())) {
@@ -47,6 +52,7 @@ public class RestaurantService {
         return repository.findByLocation(location);
     }
 
+    @CacheEvict(value = {"menu-by-restaurant","restaurant-search"},key = "#restaurantId",allEntries = false)
     public Restaurant addMenuItem(String restaurantId, MenuItem item) {
     	if (item.getImageUrl() == null || item.getImageUrl().isBlank()) {
     	    item.setImageUrl("/images/default-food.png");
@@ -63,17 +69,22 @@ public class RestaurantService {
         restaurant.getMenu().add(item);
         return repository.save(restaurant);
     }
-
+    
+    @Cacheable(value = "restaurants")
 	public List<Restaurant> getAllRestaurants() {
-		
+    	
+    	log.info("Fetching restaurants from DB");
+    	
 		return repository.findAll();
 	}
-
+    
+    @Cacheable(value = "menu-by-restaurant",key = "#id")
 	public Restaurant getRestaurantById(String id) {
-		
+    	log.info("Fetching menu from DB for restaurantId={}", id);
 		return repository.findById(id).orElseThrow(()->new RuntimeException("restaurant not found"));
 	}
-
+	
+    @CacheEvict( value = "menu-by-restaurant", key = "#restaurantId")
 	public void deleteMenuItem(String restaurantId, String itemId) {
 	    Restaurant restaurant = repository.findById(restaurantId)
 	            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
@@ -88,6 +99,7 @@ public class RestaurantService {
 	    repository.save(restaurant);
 	}
 	
+	@CacheEvict( value = "menu-by-restaurant", key = "#restaurantId")
 	public Restaurant updateMenuItem(String restaurantId, String itemId,MenuItemRequest request) {
 
 	    Restaurant restaurant = repository.findById(restaurantId)
@@ -108,6 +120,7 @@ public class RestaurantService {
 
 	    return repository.save(restaurant);
 	}
+	
 	public List<String> getAllLocations() {
 	    return repository.findAll().stream()
 	            .map(Restaurant::getLocation).filter(Objects::nonNull).map(String::trim)
@@ -124,6 +137,7 @@ public class RestaurantService {
 	    }
 	}
 	
+	@CacheEvict(value = { "restaurants", "restaurant-search","menu-by-restaurant"}, allEntries = true)
 	@Transactional
 	public void deleteRestaurant(String restaurantId) {
 
@@ -139,7 +153,8 @@ public class RestaurantService {
 
 	    //log.info("Restaurant {} soft-deleted, menus removed", restaurantId);
 	}
-//search service, searches for texts from both restaurants and menu db's and returns them
+    //search service, searches for texts from both restaurants and menu db's and returns them
+	@Cacheable(value = "restaurant-search",key = "#query.toLowerCase()")
 	public List<SearchResponse> search(String query) {
 
 	    List<Restaurant> restaurants = repository.search(query);

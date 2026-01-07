@@ -3,6 +3,8 @@ package com.fd.user.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +55,7 @@ public class UserService {
         String token = jwtUtil.generateToken(user);
         return new AuthResponse(token,user.getRole().name());
     }
-
+    @CacheEvict(value = "user-addresses",key = "#userId")
     public Address addAddress(Long userId, Address address) {
 
         // ensure user exists
@@ -69,13 +71,15 @@ public class UserService {
 	public List<Address> getAddressesByLocation(Long userId, String location) {
 		return addressRepo.findByUserIdAndLocationIgnoreCase(userId, location);
 	}
-
+	
+	@Cacheable(value = "user-addresses",key = "#userId")
 	public List<Address> getAllForUser(Long userId) {
 		//User user = repo.findById(userId).orElseThrow();
 
 	    return addressRepo.findByUserId(userId);
 	}
 	
+	@CacheEvict(value = "user-addresses",key = "#userId")
 	public User updateAddress(Long userId, String addressId, Address updated) {
 	    User user = repo.findById(userId).orElseThrow();
 
@@ -91,6 +95,7 @@ public class UserService {
 	    return repo.save(user);
 	}
 	
+	@CacheEvict(value = "user-addresses",key = "#userId")
 	public void deleteAddress(Long userId, String addressId) {
 		Address address = addressRepo.findByAddressIdAndUserId(addressId, userId)
 			    .orElseThrow(() -> new RuntimeException("Address not found"));

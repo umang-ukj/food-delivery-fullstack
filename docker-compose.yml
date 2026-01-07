@@ -44,9 +44,19 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    
+  redis:
+    image: redis:7.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 
 volumes:
   kafka_data:
   zookeeper_data:
   mysql_data:
   mongo_data:
+  redis_data:
