@@ -3,6 +3,8 @@ package com.fd.user.controller;
 import java.util.List;
 
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +33,7 @@ public class UserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
-
+    private final Logger log=LoggerFactory.getLogger(UserController.class);
     public UserController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
         this.jwtUtil=jwtUtil;
@@ -45,6 +47,8 @@ public class UserController {
 
     @PostMapping("/login")
     public AuthResponse login( @Valid @RequestBody LoginRequest req) {
+    	log.info("ELK_TEST: service started successfully");
+
         return userService.login(req);
     }
     
