@@ -35,7 +35,15 @@ public class KafkaConfig {
 
         FixedBackOff backOff = new FixedBackOff(3000L, 3);
 
-        return new DefaultErrorHandler(recoverer, backOff);
+        DefaultErrorHandler errorHandler =
+                new DefaultErrorHandler(recoverer, backOff);
+
+        // OPTIONAL: don't retry for validation errors
+        errorHandler.addNotRetryableExceptions(
+                IllegalArgumentException.class
+        );
+
+        return errorHandler;
     }
 
     // PAYMENT EVENT CONSUMER

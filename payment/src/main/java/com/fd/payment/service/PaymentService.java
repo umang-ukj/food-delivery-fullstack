@@ -35,12 +35,13 @@ public class PaymentService {
     private final RazorpayConfig razorpayConfig;
     private final PaymentEventProducer producer;
     private final PaymentRepository paymentRepository;
-
+    private final RazorpayClientService razorpayClientService;
     public PaymentService(PaymentEventProducer producer,
-                          PaymentRepository paymentRepository,RazorpayConfig razorpayConfig) {
+                          PaymentRepository paymentRepository,RazorpayConfig razorpayConfig,RazorpayClientService razorpayClientService) {
         this.producer = producer;
         this.paymentRepository = paymentRepository;
         this.razorpayConfig=razorpayConfig;
+        this.razorpayClientService=razorpayClientService;
     }
 
     public void processPayment(OrderEvent event) {
@@ -140,8 +141,7 @@ public class PaymentService {
             options.put("currency", "INR");
             options.put("receipt", "order_" + orderId);
 
-            Order razorpayOrder =
-                    razorpayConfig.razorpayClient().orders.create(options);
+            Order razorpayOrder =razorpayClientService.createOrder(options);
 
             // UPDATE existing payment
             payment.setAmount(amount);
@@ -200,19 +200,19 @@ public class PaymentService {
 
         } catch (Exception ex) {
 
-            // ❌ PAYMENT FAILED
+            //  PAYMENT FAILED
             payment.setStatus(PaymentStatus.PAYMENT_FAILED);
             payment.setUpdatedAt(LocalDateTime.now());
             paymentRepository.save(payment);
 
-            // 🔥 VERY IMPORTANT LOG
+            // VERY IMPORTANT LOG
             log.error(
                 "Payment FAILED for orderId={}, reason={}",
                 payment.getOrderId(),
                 ex.getMessage()
             );
 
-            // 📣 Publish PAYMENT_FAILED event
+            // Publish PAYMENT_FAILED event
             producer.publish(payment);
 
             throw new RuntimeException("Payment verification failed", ex);

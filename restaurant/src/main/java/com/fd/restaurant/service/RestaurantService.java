@@ -154,15 +154,23 @@ public class RestaurantService {
 	    //log.info("Restaurant {} soft-deleted, menus removed", restaurantId);
 	}
     //search service, searches for texts from both restaurants and menu db's and returns them
-	@Cacheable(value = "restaurant-search",key = "#query.toLowerCase()")
+	@Cacheable(
+		    value = "restaurant-search",
+		    key = "#query.toLowerCase().trim()",
+		    unless = "#query == null || #query.trim().isEmpty()"
+		)
 	public List<SearchResponse> search(String query) {
+		
+		log.info("Search request received: query='{}'", query);
 
 	    List<Restaurant> restaurants = repository.search(query);
 
 	    if (restaurants == null) {
 	        return List.of();
 	    }
-
+	    if (query == null || query.trim().isEmpty()) {
+	        return List.of(); // not to return null, breaks search suggestion as redis caching is implemented
+	    }
 	    return restaurants.stream()
 	        .map(r -> {
 	            List<String> matchedMenus = r.getMenu() == null

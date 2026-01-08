@@ -34,6 +34,9 @@ spring:
       properties:
         spring.json.add.type.headers: false
         enable.idempotence: true
+        retry.backoff.ms: 1000
+      acks: all
+      retries: 3
 
 eureka:
   client:

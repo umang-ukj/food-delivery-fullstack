@@ -43,6 +43,9 @@ spring:
       properties:
         spring.json.add.type.headers: false
         enable.idempotence: true
+        retry.backoff.ms: 1000
+      acks: all
+      retries: 3
 
 eureka:
   client:
@@ -78,3 +81,23 @@ razorpay:
   key:
     id: rzp_test_S096iHo0OtCLup
     secret: jGlFutu6qa1O0z01alUTslaV
+resilience4j:
+  circuitbreaker:
+    instances:
+      razorpay:
+        failureRateThreshold: 50
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+  retry:
+    instances:
+      razorpay:
+        maxAttempts: 2
+        waitDuration: 1s
+
+  timelimiter:
+    instances:
+      razorpay:
+        timeoutDuration: 3s
