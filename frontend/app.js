@@ -172,31 +172,26 @@ if (getUserRole() === "admin") {
     console.error("Expected restaurant array, got:", restaurants);
     return;
   }
-    const ul = document.getElementById("restaurants");
-    ul.innerHTML = "";
+    const container = document.getElementById("restaurants");
+    container.innerHTML = "";
 
     restaurants.forEach(r => {
-      const li = document.createElement("li");
-      li.innerHTML = `
+      const card = document.createElement("div");
+      card.className = "restaurant-card";
+      card.innerHTML = `
     <div style="display:flex; gap:12px; align-items:center;">
       <img 
-        src="${r.imageUrl || '/images/default-restaurant.png'}"
-        style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
-      />
-      <div>
-        <strong>${r.name}</strong><br/>
-        <small>${r.location}</small>
-      </div>
-    </div>
-  `;
-  li.style.cursor = "pointer";
+            src="${r.imageUrl || '/images/default-restaurant.png'}"
+            style="width:100%;height:140px;object-fit:cover;border-radius:6px;"
+          />
+          <h3>${r.name}</h3>
+          <p>${r.location}</p>
+          <button onclick="openMenu(${r.id})">View Menu</button>
+        `;
 
-      li.onclick = () => {
-        window.location.href = `menu.html?restaurantId=${r.id}`;
-      };
-      ul.appendChild(li);
+        container.appendChild(card);
+      });
     });
-  });
 }
 
 function loadRestaurantsByLocation(location) {
@@ -211,28 +206,24 @@ function loadRestaurantsByLocation(location) {
     console.error("Expected restaurant array, got:", restaurants);
     return;
   }
-    const ul = document.getElementById("restaurants");
-    ul.innerHTML = "";
+    const container = document.getElementById("restaurants");
+    container.innerHTML = "";
 
     restaurants.forEach(r => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-    <div style="display:flex; gap:12px; align-items:center;">
-      <img 
-        src="${r.imageUrl || '/images/default-restaurant.png'}"
-        style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
-      />
-      <div>
-        <strong>${r.name}</strong><br/>
-        <small>${r.location}</small>
-      </div>
-    </div>
-  `;
-      li.onclick = () => {
-        window.location.href = `menu.html?restaurantId=${r.id}`;
-      };
-      ul.appendChild(li);
-    });
+      const card = document.createElement("div");
+      card.className = "restaurant-card";
+      card.innerHTML = `
+          <img 
+            src="${r.imageUrl || '/images/default-restaurant.png'}"
+            style="width:100%;height:140px;object-fit:cover;border-radius:6px;"
+          />
+          <h3>${r.name}</h3>
+          <p>${r.location}</p>
+          <button onclick="openMenu(${r.id})">View Menu</button>
+        `;
+
+        container.appendChild(card);
+      });
 });
 }
 
@@ -591,7 +582,7 @@ if (!Array.isArray(r.menu)) {
       r.menu.forEach(item => {
         const li = document.createElement("li");
 
-        li.style.display = "flex";
+       // li.style.display = "flex";
         li.style.alignItems = "center";
         li.style.gap = "12px";
 
@@ -1094,56 +1085,35 @@ function searchRestaurants() {
 }
 
 function renderSearchResults(results) {
-  const ul = document.getElementById("restaurants");
-  ul.innerHTML = "";
+  const container = document.getElementById("restaurants");
+  container.innerHTML = "";
 
-  if (!Array.isArray(results)) {
-    console.error("Search API did not return array:", results);
-    ul.innerHTML = "<li>Search error</li>";
-    return;
-  }
-
-  if (results.length === 0) {
-    ul.innerHTML = "<li>No results found</li>";
+  if (!Array.isArray(results) || results.length === 0) {
+    container.innerHTML = "<p>No results found</p>";
     return;
   }
 
   results.forEach(r => {
-    const li = document.createElement("li");
-    li.style.cursor = "pointer";
+    const card = document.createElement("div");
+    card.className = "restaurant-card";
 
-    li.innerHTML = `
-      <div style="display:flex; gap:12px; align-items:center;">
-        <img 
-  src="${r.imageUrl || '/images/default-restaurant.png'}"
-  style="
-    width:80px;
-    height:80px;
-    object-fit:cover;
-    border-radius:8px;
-  "
-/>
-
-        <div>
-          <strong>${r.restaurantName}</strong><br/>
-          <small>${r.location}</small>
-
-          ${
-            r.matchedMenus.length > 0
-              ? `<div style="color:green;font-size:13px;">
-                   Matches: ${r.matchedMenus.join(", ")}
-                 </div>`
-              : ""
-          }
-        </div>
-      </div>
+    card.innerHTML = `
+      <img 
+        src="${r.imageUrl || '/images/default-restaurant.png'}"
+        style="width:100%;height:140px;object-fit:cover;border-radius:6px;"
+      />
+      <h3>${r.restaurantName}</h3>
+      <p>${r.location}</p>
+      ${
+        r.matchedMenus.length > 0
+          ? `<p style="color:green;font-size:13px;">
+               Matches: ${r.matchedMenus.join(", ")}
+             </p>`
+          : ""
+      }
+      <button onclick="openMenu(${r.restaurantId})">View Menu</button>
     `;
-
-    li.onclick = () => {
-      window.location.href = `menu.html?restaurantId=${r.restaurantId}`;
-    };
-
-    ul.appendChild(li);
+    container.appendChild(card);
   });
 }
 //autofill functionality

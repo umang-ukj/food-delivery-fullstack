@@ -2,10 +2,12 @@
 <html>
 <head>
   <title>Restaurants</title>
+  <link rel="stylesheet" href="common.css" />
 </head>
 <body>
-<div id="navbar"></div>
 
+<div id="navbar"></div>
+<script src="navbar.js"></script>
 <script>
   fetch("navbar.html")
     .then(res => res.text())
@@ -14,65 +16,38 @@
       renderNavbar();
     });
 </script>
-<script src="navbar.js"></script>
 
-<label>Filter by location:</label>
-<select id="locationFilter" onchange="filterByLocation()">
-  <option value="">All Locations</option>
-</select>
+<div class="page-container">
 
-<hr>
-<!-- <ul id="restaurants"></ul> -->
- <!-- basic search -->
-<!-- <div style="margin: 16px 0;">
-  <input
-    type="text"
-    id="searchInput"
-    placeholder="Search restaurants or dishes..."
-    onkeyup="searchRestaurants()"
-  />
-</div> -->
+  <h2 class="page-title">Browse Restaurants</h2>
 
-<div style="position: relative;">
-  <input 
-    type="text" 
-    id="searchInput"
-    placeholder="Search restaurants or dishes..."
-    onkeyup="searchRestaurants()"
-  />
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
 
-  <div id="searchSuggestions" class="suggestions"></div>
+    <div class="filter-item">
+      <label>Location</label>
+      <select id="locationFilter" onchange="filterByLocation()">
+        <option value="">All Locations</option>
+      </select>
+    </div>
+
+    <div class="filter-item search-box">
+      <label>Search</label>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search restaurants or dishes..."
+        onkeyup="searchRestaurants()"
+      />
+      <div id="searchSuggestions" class="suggestions"></div>
+    </div>
+
+  </div>
+
+  <!-- RESTAURANTS GRID -->
+  <div id="restaurants" class="restaurant-grid"></div>
+
 </div>
-
-
-<ul id="restaurantList"></ul>
-
-<h2>Select a Restaurant</h2>
-<ul id="restaurants"></ul>
-<style>
-  .suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #ddd;
-  border-top: none;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-}
-
-.suggestion-item {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.suggestion-item:hover {
-  background-color: #f2f2f2;
-}
-
-</style>
 <script src="app.js"></script>
 <script>
   loadLocations();

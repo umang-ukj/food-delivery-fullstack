@@ -2,43 +2,7 @@
 <html>
 <head>
   <title>Menu</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-
-    .container {
-      display: flex;
-      gap: 30px;
-    }
-
-    .menu-section, .cart-section {
-      width: 50%;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      margin-bottom: 10px;
-    }
-
-    button {
-      margin-left: 10px;
-      cursor: pointer;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 10px;
-    }
-  </style>
-</head>
-<body>
-
+  <link rel="stylesheet" href="common.css" />
 <div id="navbar"></div>
 
 <script>
@@ -51,67 +15,60 @@
 </script>
 <script src="navbar.js"></script>
 
-<h2 id="restaurantName"></h2>
+<div class="page-container">
 
-<div class="container">
+  <h2 id="restaurantName" class="page-title"></h2>
 
-  <!-- menu -->
-  <div class="menu-section">
-    <h3>Menu</h3>
-    <ul id="menu"></ul>
-  </div>
+  <div class="menu-layout">
 
-  <!-- cart+address -->
-  <div class="cart-section">
+    <!-- MENU -->
+    <div class="menu-section">
+      <h3>Menu</h3>
+      <ul id="menu" class="menu-list"></ul>
+    </div>
 
-    <h3>Cart</h3>
-    <ul id="cart"></ul>
+    <!-- CART -->
+    <div class="cart-section">
 
-    <h3>Total: ₹<span id="total">0</span></h3>
+      <h3>Your Cart</h3>
+      <ul id="cart" class="cart-list"></ul>
 
-    <hr>
+      <div class="cart-total">
+        Total: ₹<span id="total">0</span>
+      </div>
 
-    <h3>Select Delivery Address</h3>
+      <hr>
 
-    <select id="addressSelect" onchange="enablePlaceOrder()">
-      <option value="">Select address</option>
-    </select>
+      <h4>Delivery Address</h4>
+      <select id="addressSelect" onchange="enablePlaceOrder()">
+        <option value="">Select address</option>
+      </select>
 
-    <h4>Add New Address</h4>
+      <div class="address-form">
+        <input id="addrLabel" placeholder="Label (Home / Office)">
+        <input id="addrLine1" placeholder="Address line">
+        <input id="addrLocation" placeholder="Location">
+        <input id="addrPincode" placeholder="Pincode">
+        <button onclick="saveAddress()">Save Address</button>
+      </div>
 
-    <input id="addrLabel" placeholder="Label (Home / Office)">
-    <input id="addrLine1" placeholder="Address line">
-    <input id="addrLocation" placeholder="Location">
-    <input id="addrPincode" placeholder="Pincode">
+      <hr>
 
-    <button onclick="saveAddress()">Save Address</button>
+      <h4>Payment Method</h4>
+      <div id="paymentMethods" class="payment-methods">
+        <label><input type="radio" name="paymentMethod" value="CASH" checked> Cash</label>
+        <label><input type="radio" name="paymentMethod" value="UPI"> UPI</label>
+        <label><input type="radio" name="paymentMethod" value="CARD"> Card</label>
+      </div>
 
-    <hr>
-<h3>Payment Method</h3>
+      <button id="placeOrderBtn" disabled onclick="placeOrder()" class="primary-btn">
+        Place Order
+      </button>
 
-<div id="paymentMethods">
-  <label>
-    <input type="radio" name="paymentMethod" value="CASH" checked />Cash on Delivery</label>
-  <br>
-
-  <label>
-    <input type="radio" name="paymentMethod" value="UPI" />UPI</label>
-  <br>
-
-  <label>
-    <input type="radio" name="paymentMethod" value="CARD" />Card</label>
-</div>
-
-<br>
-
-    <button id="placeOrderBtn" disabled onclick="placeOrder()">
-      Place Order
-    </button>
-
+    </div>
   </div>
 
 </div>
-
 <script src="app.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>

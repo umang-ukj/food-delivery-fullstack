@@ -2,62 +2,8 @@
 <html>
 <head>
   <title>My Orders</title>
+<link rel="stylesheet" href="common.css" />
 
-  <style>
-    .order-card {
-      border: 1px solid #ddd;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-    }
-
-    .order-summary {
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .delivery-status {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    /* INACTIVE steps */
-    .step {
-      padding: 4px 10px;
-      border-radius: 16px;
-      font-size: 12px;
-      background: #e0e0e0;
-      color: #777;
-      opacity: 0.35;
-      transform: scale(0.95);
-      transition: all 0.4s ease;
-    }
-
-    /* ACTIVE base */
-    .step.active {
-      opacity: 1;
-      transform: scale(1.05);
-      color: #fff;
-    }
-
-    /* PER-STEP COLORS */
-    .step.active[data-step="CREATED"] {
-      background-color: #1976d2;
-    }
-
-    .step.active[data-step="PICKED_UP"] {
-      background-color: #f57c00;
-    }
-
-    .step.active[data-step="OUT_FOR_DELIVERY"] {
-      background-color: #7b1fa2;
-    }
-
-    .step.active[data-step="DELIVERED"] {
-      background-color: #2e7d32;
-    }
-  </style>
 </head>
 
 <body>
@@ -74,11 +20,14 @@
 </script>
 <script src="navbar.js"></script>
 
-<h2>My Orders</h2>
+<div class="page-container">
 
-<!-- Orders list -->
-<ul id="orders" style="list-style: none; padding: 0;"></ul>
+  <h2 class="page-title">My Orders</h2>
 
+  <!-- Orders list -->
+  <ul id="orders" class="orders-list"></ul>
+
+</div>
 <script src="app.js"></script>
 <script>
   loadOrders();
