@@ -19,20 +19,27 @@ function getUserRole() {
 }
 
 function login() {
-
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  const errorEl = document.getElementById("loginError");
+  const loginBtn = document.getElementById("loginBtn");
 
+  errorEl.style.display = "none";
+
+  // Basic validation
   if (!email || !password) {
-    alert("Email and password are required");
+    showError("Email and password are required");
     return;
   }
 
   if (!email.includes("@")) {
-    alert("Invalid email format");
+    showError("Invalid email format");
     return;
   }
-  
+
+  // Loading state
+  loginBtn.disabled = true;
+  loginBtn.innerText = "Logging in...";
 
   fetch(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -41,25 +48,39 @@ function login() {
     },
     body: JSON.stringify({ email, password })
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Login failed");
-    return res.json();
-  })
-  .then(data => {
-    // store auth info
-    localStorage.setItem("jwt", data.token);
-    localStorage.setItem("userEmail", email);
-    const payload = JSON.parse(atob(data.token.split(".")[1]));
-    const role = payload.role;
+    .then(res => {
+      if (!res.ok) throw new Error("Invalid email or password");
+      return res.json();
+    })
+    .then(data => {
+      // Store auth info
+      localStorage.setItem("jwt", data.token);
+      localStorage.setItem("userEmail", email);
 
-  if (role === "admin") {
-    window.location.href = "admin.html";
-  } else {
-    window.location.href = "restaurants.html";
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      const role = payload.role;
+
+      // Redirect by role
+      if (role === "admin") {
+        window.location.href = "admin.html";
+      } else {
+        window.location.href = "restaurants.html";
+      }
+    })
+    .catch(err => {
+      showError(err.message || "Login failed");
+    })
+    .finally(() => {
+      loginBtn.disabled = false;
+      loginBtn.innerText = "Login";
+    });
+
+  function showError(msg) {
+    errorEl.innerText = msg;
+    errorEl.style.display = "block";
   }
-  })
-  .catch(() => alert("Login failed"));
 }
+
 
 function logout() {
   localStorage.clear();
