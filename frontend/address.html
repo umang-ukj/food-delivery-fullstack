@@ -2,78 +2,8 @@
 <html>
 <head>
   <title>My Addresses</title>
-
-  <style>
-    .menu-container {
-  position: relative;
-}
-
-.menu-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.menu-dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 25px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  min-width: 120px;
-  z-index: 10;
-}
-
-.menu-dropdown button {
-  width: 100%;
-  padding: 8px 10px;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-}
-
-.menu-dropdown button:hover {
-  background: #f5f5f5;
-}
-
-    body {
-      font-family: Arial, sans-serif;
-    }
-
-    .container {
-      width: 60%;
-      margin: auto;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      margin-bottom: 10px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    button {
-      margin-left: 8px;
-      cursor: pointer;
-    }
-
-    input {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="common.css" />
+ 
 </head>
 <body>
 
@@ -89,24 +19,27 @@
 </script>
 <script src="navbar.js"></script>
 
-<div class="container">
+<div class="page-container">
 
-  <h2>Saved Addresses</h2>
+  <h2 class="page-title">Saved Addresses</h2>
 
   <!-- Address list -->
-  <ul id="addressList"></ul>
+  <ul id="addressList" class="address-list"></ul>
 
   <hr>
 
-  <h3>Add New Address</h3>
+  <h3>Add / Edit Address</h3>
 
-  <input id="addrLabel" placeholder="Label (Home / Office)">
-  <input id="addrLine1" placeholder="Address line">
-  <input id="addrLocation" placeholder="Location">
-  <input id="addrPincode" placeholder="Pincode">
+  <div class="address-form">
+    <input id="addrLabel" placeholder="Label (Home / Office)">
+    <input id="addrLine1" placeholder="Address line">
+    <input id="addrLocation" placeholder="Location">
+    <input id="addrPincode" placeholder="Pincode">
 
-  <button id="saveBtn" onclick="saveAddress()">Save Address</button>
-
+    <button id="saveBtn" class="primary-btn" onclick="saveAddress()">
+      Save Address
+    </button>
+  </div>
 
 </div>
 
