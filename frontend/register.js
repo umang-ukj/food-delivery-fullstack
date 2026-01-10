@@ -1,18 +1,30 @@
 document.getElementById("registerForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("registerBtn");
+
+  msg.style.display = "none";
+  msg.className = "error-text";
 
   if (!email || !password) {
-    alert("Email and password are required");
+    showError("Email and password are required");
     return;
   }
 
   if (!email.includes("@")) {
-    alert("Invalid email format");
+    showError("Invalid email format");
     return;
   }
+  if (password.length < 6) {
+    showError("Password must be at least 6 characters");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerText = "Registering...";
 
   try {
     const response = await fetch("http://localhost:8080/auth/register", {
@@ -27,14 +39,25 @@ document.getElementById("registerForm").addEventListener("submit", async functio
       throw new Error("Registration failed");
     }
 
-    document.getElementById("msg").innerText =
-      "Registration successful. Please login.";
+    msg.innerText = "Registration successful. Redirecting to login...";
+    msg.style.display = "block";
+    msg.style.color = "green";
 
     setTimeout(() => {
       window.location.href = "login.html";
     }, 1200);
 
-  } catch (err) {
-    document.getElementById("msg").innerText = err.message;
+  } 
+  catch (err) {
+   showError(err.message || "Registration failed");
+     } finally {
+      btn.disabled = false;
+      btn.innerText = "Register";
+    }
+
+  function showError(text) {
+    msg.innerText = text;
+    msg.style.display = "block";
+    msg.style.color = "red";
   }
 });

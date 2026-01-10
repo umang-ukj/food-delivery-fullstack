@@ -154,11 +154,7 @@ public class RestaurantService {
 	    //log.info("Restaurant {} soft-deleted, menus removed", restaurantId);
 	}
     //search service, searches for texts from both restaurants and menu db's and returns them
-	@Cacheable(
-		    value = "restaurant-search",
-		    key = "#query.toLowerCase().trim()",
-		    unless = "#query == null || #query.trim().isEmpty()"
-		)
+	
 	public List<SearchResponse> search(String query) {
 		
 		log.info("Search request received: query='{}'", query);
