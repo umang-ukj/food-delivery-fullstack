@@ -186,12 +186,24 @@ if (getUserRole() === "admin") {
           />
           <h3>${r.name}</h3>
           <p>${r.location}</p>
-          <button onclick="openMenu(${r.id})">View Menu</button>
+          <button onclick="openMenu('${r.id}')">View Menu</button>
         `;
 
         container.appendChild(card);
       });
     });
+}
+function openMenu(restaurantId) {
+  if (!restaurantId) {
+    console.error("Restaurant ID missing");
+    return;
+  }
+
+  // store selected restaurant
+  localStorage.setItem("selectedRestaurantId", restaurantId);
+
+  // navigate to menu page
+  window.location.href = "menu.html";
 }
 
 function loadRestaurantsByLocation(location) {
@@ -219,7 +231,7 @@ function loadRestaurantsByLocation(location) {
           />
           <h3>${r.name}</h3>
           <p>${r.location}</p>
-          <button onclick="openMenu(${r.id})">View Menu</button>
+          <button onclick="openMenu('${r.id}')">View Menu</button>
         `;
 
         container.appendChild(card);
@@ -552,8 +564,13 @@ function loadMenu() {
     window.location.href = "admin.html";
     return;
   }
-  const params = new URLSearchParams(window.location.search);
-  selectedRestaurantId = params.get("restaurantId");
+ selectedRestaurantId = localStorage.getItem("selectedRestaurantId");
+
+if (!selectedRestaurantId) {
+  alert("No restaurant selected");
+  window.location.href = "restaurants.html";
+  return;
+}
 
   fetch(`${API_BASE}/restaurants/${selectedRestaurantId}`, {
     headers: {
