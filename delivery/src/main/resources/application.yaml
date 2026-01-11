@@ -51,6 +51,21 @@ management:
   endpoint:
     health:
       show-details: always
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  metrics:
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true  
+    
 logging:
   level:
     root: INFO

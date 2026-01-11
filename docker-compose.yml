@@ -98,6 +98,11 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
 
 volumes:
   kafka_data:
