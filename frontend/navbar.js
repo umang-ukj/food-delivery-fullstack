@@ -1,6 +1,5 @@
 function renderNavbar() {
   const token = localStorage.getItem("jwt");
-
   const emailSpan = document.getElementById("userEmail");
   const adminLink = document.getElementById("adminLink");
   const browseLink = document.getElementById("browseLink");
@@ -43,6 +42,36 @@ if (role === "admin") {
     browseLink.style.display = "inline";
     ordersLink.style.display = "inline";
   }
+  setupBrandClick();
+}
+function setupBrandClick() {
+  const brand = document.getElementById("brandLink");
+  if (!brand) return;
+
+  const token = localStorage.getItem("jwt");
+
+  //  Not logged in → disabled
+  if (!token) {
+    brand.style.cursor = "default";
+    brand.onclick = null;
+    return;
+  }
+
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  const role = payload.role;
+
+  //  Admin → disabled (IMPORTANT)
+  if (role === "admin") {
+    brand.style.cursor = "default";
+    brand.onclick = null;
+    return;
+  }
+
+  //  Normal user → go to restaurants
+  brand.style.cursor = "pointer";
+  brand.onclick = () => {
+    window.location.href = "restaurants.html";
+  };
 }
 
 function logout() {

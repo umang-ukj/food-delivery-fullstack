@@ -566,3 +566,17 @@
   color: #2e7d32;
   font-weight: bold;
 }
+.brand-link {
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #000;
+  cursor: pointer;
+}
+
+.brand-link:hover {
+  text-decoration: underline;
+}
+.brand-link[href]:hover {
+  text-decoration: underline;
+}

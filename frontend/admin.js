@@ -132,10 +132,10 @@ function showAddMenu() {
   .catch(() => alert("Access denied"));
 } */
 
-  async function addMenuItem() {
+async function addMenuItem() {
 
-  const name = document.getElementById("menuName").value.trim();
-  const price = document.getElementById("menuPrice").value;
+const name = document.getElementById("menuName").value.trim();
+const price = document.getElementById("menuPrice").value;
 const imageInput = document.getElementById("menuImage");
 const imageFile = imageInput ? imageInput.files[0] : null;
 let imageUrl = null;
@@ -208,11 +208,19 @@ function loadRestaurants() {
         <strong>${r.name}</strong><br/>
         <small>${r.location}</small>
       </div>
-      <button 
-      style="background:#d9534f;color:white;border:none;padding:6px 10px;"
-      onclick="deleteRestaurant('${r.id}')">
-      Delete
-    </button>
+      <button onclick="showEditRestaurant(
+  '${r.id}',
+  '${r.name}',
+  '${r.location}',
+  '${r.imageUrl || ""}'
+)">Edit</button>
+
+<button 
+  style="background:#d9534f;color:white;border:none;padding:6px 10px;"
+  onclick="deleteRestaurant('${r.id}')">
+  Delete
+</button>
+
     </div>
   `;
       li.style.cursor = "pointer";
@@ -221,6 +229,67 @@ function loadRestaurants() {
     });
   });
 }
+function showEditRestaurant(id, name, location, imageUrl) {
+  document.getElementById("content").innerHTML = `
+    <h3>Edit Restaurant</h3>
+
+    <input id="editRName" value="${name}" /><br><br>
+    <input id="editLoc" value="${location}" /><br><br>
+
+    <input type="file" id="editRestaurantImage" accept="image/*"><br><br>
+
+    <button onclick="updateRestaurant('${id}', '${imageUrl || ""}')">
+      Update
+    </button>
+  `;
+}
+async function updateRestaurant(id, oldImageUrl) {
+  const name = document.getElementById("editRName").value.trim();
+  const location = document.getElementById("editLoc").value.trim();
+  const imageInput = document.getElementById("editRestaurantImage");
+  const imageFile = imageInput.files[0];
+
+  let imageUrl = oldImageUrl;
+
+  if (!name || !location) {
+    alert("Name and location required");
+    return;
+  }
+
+  try {
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+
+      const uploadRes = await fetch(`${API_BASE}/restaurants/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("jwt")}`
+        },
+        body: formData
+      });
+
+      const uploadData = await uploadRes.json();
+      imageUrl = uploadData.imageUrl;
+    }
+
+    const res = await fetch(`${API_BASE}/restaurants/${id}`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ name, location, imageUrl })
+    });
+
+    if (!res.ok) throw new Error();
+
+    alert("Restaurant updated");
+    document.getElementById("content").innerHTML = "";
+    loadRestaurants();
+
+  } catch {
+    alert("Failed to update restaurant");
+  }
+}
+
 async function deleteRestaurant(restaurantId) {
   const confirm1 = confirm(
     "This will delete the restaurant and all its menu items."
@@ -294,8 +363,17 @@ function selectRestaurant(restaurantId) {
     />
 
     <div style="flex:1">
-      <strong>${item.name}</strong>
-    </div>
+  <input 
+    value="${item.name}"
+    onchange="updateMenuItem(
+      '${item.itemId}',
+      this.value,
+      ${item.price}
+    )"
+  />
+</div>
+
+<button onclick="showEditMenuImage('${item.itemId}')">Edit</button>
 
     <input 
       type="number"
@@ -309,11 +387,54 @@ function selectRestaurant(restaurantId) {
 
   menuUl.appendChild(li);
 });
-
-
-
     //document.getElementById("addMenuSection").style.display = "block";
   });
+}
+function showEditMenuImage(menuId) {
+  document.getElementById("content").innerHTML = `
+    <h3>Update Menu Image</h3>
+    <input type="file" id="editMenuImage" accept="image/*"><br><br>
+    <button onclick="updateMenuImage('${menuId}')">Update</button>
+  `;
+}
+
+async function updateMenuImage(menuId) {
+  const file = document.getElementById("editMenuImage").files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const uploadRes = await fetch(`${API_BASE}/restaurants/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    },
+    body: formData
+  });
+
+  const data = await uploadRes.json();
+
+  await fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu/${menuId}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ imageUrl: data.imageUrl })
+  });
+
+  document.getElementById("content").innerHTML = "";
+  selectRestaurant(selectedRestaurantId);
+}
+
+function updateMenuItem(menuId, name, price) {
+  fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu/${menuId}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ name, price })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+  })
+  .catch(() => alert("Failed to update menu item"));
 }
 
 function deleteMenuItem(menuId) {

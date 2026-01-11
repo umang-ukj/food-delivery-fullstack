@@ -17,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fd.restaurant.dto.MenuItemRequest;
+import com.fd.restaurant.dto.RestaurantUpdateRequest;
 import com.fd.restaurant.dto.SearchResponse;
 import com.fd.restaurant.model.MenuItem;
 import com.fd.restaurant.model.Restaurant;
@@ -99,27 +100,36 @@ public class RestaurantService {
 	    repository.save(restaurant);
 	}
 	
-	@CacheEvict( value = "menu-by-restaurant", key = "#restaurantId")
-	public Restaurant updateMenuItem(String restaurantId, String itemId,MenuItemRequest request) {
+    @CacheEvict(value = "menu-by-restaurant", key = "#restaurantId")
+    public Restaurant updateMenuItem(String restaurantId,String itemId,MenuItemRequest request) {
 
-	    Restaurant restaurant = repository.findById(restaurantId)
-	            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        Restaurant restaurant = repository.findById(restaurantId)
+            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
-	    MenuItem menuItem = restaurant.getMenu().stream()
-	            .filter(item -> itemId.equals(item.getItemId()))
-	            .findFirst()
-	            .orElseThrow(() -> new RuntimeException("Menu item not found"));
+        MenuItem menuItem = restaurant.getMenu().stream()
+            .filter(item -> itemId.equals(item.getItemId()))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Menu item not found"));
 
-	    if (request.getPrice() != null) {
-	        menuItem.setPrice(request.getPrice());
-	    }
+        if (request.getName() != null && !request.getName().isBlank()) {
+            menuItem.setName(request.getName());
+        }
 
-	    if (request.getAvailable() != null) {
-	        menuItem.setAvailable(request.getAvailable());
-	    }
+        if (request.getPrice() != null) {
+            menuItem.setPrice(request.getPrice());
+        }
 
-	    return repository.save(restaurant);
-	}
+        if (request.getAvailable() != null) {
+            menuItem.setAvailable(request.getAvailable());
+        }
+
+        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            menuItem.setImageUrl(request.getImageUrl());
+        }
+
+        return repository.save(restaurant);
+    }
+
 	
 	public List<String> getAllLocations() {
 	    return repository.findAll().stream()
@@ -184,6 +194,30 @@ public class RestaurantService {
 	            );
 	        })
 	        .toList();
+	}
+	@CacheEvict(value = { "restaurants", "restaurant-search", "menu-by-restaurant" }, allEntries = true)
+	public Restaurant updateRestaurant(String restaurantId, RestaurantUpdateRequest req) {
+
+	    Restaurant restaurant = repository.findById(restaurantId)
+	        .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+	    if (req.getName() != null && !req.getName().isBlank()) {
+	        restaurant.setName(req.getName());
+	    }
+
+	    if (req.getLocation() != null && !req.getLocation().isBlank()) {
+	        restaurant.setLocation(req.getLocation());
+	    }
+
+	    if (req.getOpen() != null) {
+	        restaurant.setOpen(req.getOpen());
+	    }
+
+	    if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) {
+	        restaurant.setImageUrl(req.getImageUrl());
+	    }
+
+	    return repository.save(restaurant);
 	}
 
 }
