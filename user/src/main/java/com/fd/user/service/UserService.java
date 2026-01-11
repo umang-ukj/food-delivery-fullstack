@@ -109,6 +109,7 @@ public class UserService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "user-addresses", key = "#userId")
 	public void markAsDefault(Long userId, String addressId) {
 
 	    addressRepo.clearDefaultForUser(userId);

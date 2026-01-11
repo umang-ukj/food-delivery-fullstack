@@ -825,22 +825,34 @@ function resetForm() {
   if (saveBtn) saveBtn.innerText = "Save Address";
 }
 
-
 function toggleMenu(id) {
-  document.querySelectorAll(".menu-dropdown")
-    .forEach(m => m.style.display = "none");
-
   const menu = document.getElementById(`menu-${id}`);
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
+  if (!menu) return;
+
+  const isOpen = menu.style.display === "block";
+
+  // close all first
+  closeAllMenus();
+
+  // toggle current
+  if (!isOpen) {
+    menu.style.display = "block";
+  }
 }
 
 // close menu when clicking outside
 document.addEventListener("click", e => {
-  if (!e.target.classList.contains("menu-btn")) {
-    document.querySelectorAll(".menu-dropdown")
-      .forEach(m => m.style.display = "none");
+  if (!e.target.closest(".menu-container")) {
+    closeAllMenus();
   }
 });
+
+
+function closeAllMenus() {
+  document.querySelectorAll(".menu-dropdown")
+    .forEach(m => m.style.display = "none");
+}
+
 function markAsDefault(addressId) {
   fetch(`${API_BASE}/auth/addresses/${addressId}/default`, {
     method: "PUT",
@@ -849,58 +861,81 @@ function markAsDefault(addressId) {
     }
   })
   .then(res => {
-    if (!res.ok) throw new Error();
-    loadAddressesList();   // refresh UI
+    if (!res.ok) throw new Error("Failed to set default");
+    
   })
-  .catch(() => alert("Failed to mark default address"));
+  .then(() => {
+    closeAllMenus(); 
+    loadAddressesList(); 
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Failed to set default address");
+  });
 }
 // Load all user addresses (no location filter here)
-  function loadAddressesList() {
-    fetch(`${API_BASE}/auth/addresses/all`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("jwt")}`
-      }
-    })
-    .then(res => res.json())
-    .then(addresses => {
-      const ul = document.getElementById("addressList");
-      ul.innerHTML = "";
+ function loadAddressesList() {
+  fetch(`${API_BASE}/auth/addresses/all`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => res.json())
+  .then(addresses => {
+    const ul = document.getElementById("addressList");
+    ul.innerHTML = "";
 
-      addresses.forEach(a => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-  <div>
-    <b>${a.label}</b><br>
-    ${a.isDefault ? '<span style="color:green;margin-left:8px;">(Default)</span>' : ''}
-    <br>
-    ${a.line1}<br>
-    ${a.location} - ${a.pincode}
-  </div>
-  <div class="menu-container">
-  <button class="menu-btn" onclick="toggleMenu('${a.addressId}')">⋮</button>
+    addresses.forEach(a => {
+      const li = document.createElement("li");
 
-  <div class="menu-dropdown" id="menu-${a.addressId}">
-    <button onclick="startEditAddress(
-  '${a.addressId}',
-  '${a.label}',
-  '${a.line1}',
-  '${a.location}',
-  '${a.pincode}'
-)">✏️ Edit</button>
-${!a.isDefault ? 
-  `<button onclick="markAsDefault('${a.addressId}')">⭐ Set as Default</button>` : ''}
+      li.innerHTML = `
+        <div class="address-card">
+          <div class="address-info">
+            <b>${a.label}</b><br>
+            ${a.isDefault ? '<span class="default-tag">(Default)</span>' : ''}
+            <br>
+            ${a.line1}<br>
+            ${a.location} - ${a.pincode}
+          </div>
 
-   <button onclick="deleteAddress('${a.addressId}')"
-   ${a.isDefault ? 'disabled title="Default address cannot be deleted"' : ''}>🗑️ Delete </button>
-  </div>
-</div>
+          <div class="menu-container">
+            <button class="menu-btn" onclick="toggleMenu('${a.addressId}')">⋮</button>
 
-`;
+            <div class="menu-dropdown" id="menu-${a.addressId}">
+              <button onclick="startEditAddress(
+                '${a.addressId}',
+                '${a.label}',
+                '${a.line1}',
+                '${a.location}',
+                '${a.pincode}'
+              ); closeAllMenus();">
+                ✏️ Edit
+              </button>
 
-        ul.appendChild(li);
-      });
+              ${
+                !a.isDefault
+                  ? `<button onclick="markAsDefault('${a.addressId}'); closeAllMenus();">
+                       ⭐ Set as Default
+                     </button>`
+                  : ""
+              }
+
+              <button
+                onclick="deleteAddress('${a.addressId}'); closeAllMenus();"
+                ${a.isDefault ? 'disabled title="Default address cannot be deleted"' : ''}
+              >
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      ul.appendChild(li);
     });
-  }
+  });
+}
+
 function startEditAddress(id, label, line1, location, pincode) {
   editingAddressId = id;
 
