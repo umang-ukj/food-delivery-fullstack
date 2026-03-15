@@ -93,3 +93,5 @@ Order Service
 - docker compose down
 
 admin1@gmail.com--random
+umang273.ukj@gmail.com--random
+testuser1@gmail.com--random

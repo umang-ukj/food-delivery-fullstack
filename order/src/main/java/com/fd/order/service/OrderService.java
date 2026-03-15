@@ -26,21 +26,24 @@ public class OrderService {
     private final OrderRepository repository;
     private final OrderEventProducer producer;
     private final OrderConfirmedEventProducer orderConfirmedProducer;
+    private final EmailService emailService;
 
     public OrderService(OrderRepository repository,
-                        OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer) {
+                        OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer, EmailService emailService) {
         this.repository = repository;
         this.producer = producer;
         this.orderConfirmedProducer=orderConfirmedProducer;
+        this.emailService=emailService;
     }
 
-    public Order createOrder(Long userId, CreateOrderRequest request) {
+    public Order createOrder(Long userId,String userEmail, CreateOrderRequest request) {
 		/*
 		 * PaymentMethod paymentMethod =
 		 * PaymentMethod.valueOf(request.getPaymentMethod());
 		 */
         Order order = new Order();
         order.setUserId(userId);
+        order.setUserEmail(userEmail);
         order.setRestaurantId(request.getRestaurantId());
         order.setStatus(OrderStatus.CREATED);
 
@@ -78,6 +81,7 @@ public class OrderService {
             log.info("OrderConfirmedEvent published for CASH orderId={}", saved.getId());
             
         }
+        emailService.sendOrderConfirmationEmail(userEmail, saved);
         return saved;
     }
     

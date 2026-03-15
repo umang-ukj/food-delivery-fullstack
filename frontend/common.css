@@ -1,3 +1,10 @@
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: linear-gradient(135deg,#fff5f2,#f7f7f7);
+}
+
 .auth-subtitle {
   font-size: 14px;
   color: #666;
@@ -96,34 +103,56 @@
 
 .auth-card {
   background: white;
-  padding: 30px;
-  width: 350px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 36px;
+  width: 360px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: transform 0.2s ease;
+}
+
+.auth-card:hover {
+  transform: translateY(-2px);
 }
 
 .auth-card h2 {
   text-align: center;
+  margin-bottom: 4px;
+  font-size: 26px;
 }
 
 .auth-card input {
-  padding: 10px;
+  padding: 12px;
   font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.auth-card input:focus {
+  outline: none;
+  border: 1px solid #ff5722;
+  box-shadow: 0 0 0 3px rgba(255,87,34,0.1);
 }
 
 .auth-card button {
-  padding: 10px;
+  padding: 12px;
   font-size: 15px;
-  background-color: #ff5722;
+  background: linear-gradient(135deg,#ff5722,#ff784e);
   color: white;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
+.auth-card button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(255,87,34,0.3);
+}
 .auth-card button:disabled {
   background-color: #ccc;
 }
@@ -138,7 +167,88 @@
   text-align: center;
   font-size: 14px;
 }
+.auth-card a {
+  color: #ff5722;
+  text-decoration: none;
+  font-size: 14px;
+}
 
+.auth-card a:hover {
+  text-decoration: underline;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.auth-form button {
+  width: 100%;
+  padding: 12px;
+  background: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.auth-card hr{
+  border:none;
+  border-top:1px solid #eee;
+  margin:10px 0;
+}
+/* Fix login form alignment */
+#loginFields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#loginFields label {
+  font-weight: 500;
+}
+
+#loginFields input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#loginFields button {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* forgot password section */
+#forgotPasswordBox label{
+  text-align: center;
+  font-weight: 500;
+}
+
+#forgotPasswordBox{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#forgotPasswordBox input{
+  width:100%;
+}
+
+#forgotPasswordBox button{
+  width:100%;
+}
+.forgot-link{
+  text-align:left;
+  margin-top:6px;
+}
 /* Filters */
 .filter-bar {
   display: flex;

@@ -17,16 +17,46 @@
 </script>
 <div class="auth-container">
   <div class="auth-card">
-    <h2>Welcome</h2>
-    <p class="auth-subtitle">Login to continue ordering your favorite food</p>
 
-    <label>Email</label>
-    <input id="email" type="email" placeholder="you@example.com" />
+    <div id="loginHeader">
+      <h2>Welcome</h2>
+      <p class="auth-subtitle">Login to continue ordering your favorite food</p>
+    </div>
 
-    <label>Password</label>
-    <input id="password" type="password" placeholder="••••••••" />
+    <div class="auth-form" id="loginFields">
 
-    <button id="loginBtn" onclick="login()">Login</button>
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@example.com">
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••">
+
+      <button id="loginBtn" onclick="login()">Login</button>
+
+      <p class="forgot-link">
+        <a href="#" onclick="toggleForgotPassword(event)">Forgot password?</a>
+      </p>
+
+    </div>
+
+
+    <div id="forgotPasswordBox" class="auth-form" style="display:none;">
+
+      <p class="auth-subtitle">Enter your registered email</p>
+      
+      <input id="forgotEmail" type="email" placeholder="you@example.com">
+      <hr>
+      <button id="forgotBtn" onclick="forgotPassword()">
+        Send Temporary Password
+      </button>
+
+      <p id="forgotMsg" class="error-text" style="display:none;"></p>
+
+      <p class="forgot-link">
+        <a href="#" onclick="showLoginFields(event)">Back to login</a>
+      </p>
+
+    </div>
 
     <p id="loginError" class="error-text" style="display:none;"></p>
 
@@ -34,6 +64,7 @@
       New user?
       <a href="register.html">Register here</a>
     </p>
+
   </div>
 </div>
 

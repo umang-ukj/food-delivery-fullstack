@@ -38,6 +38,7 @@ public class OrderController {
 
         String token = authHeader.substring(7);
         Long userId = jwtUtil.extractUserId(token); 
+        String userEmail = jwtUtil.extractEmail(token);
         if (!"user".equals(jwtUtil.extractRole(token))) {
             throw new ResponseStatusException(
                 HttpStatus.FORBIDDEN,
@@ -45,7 +46,8 @@ public class OrderController {
             );
         }
 
-        return orderService.createOrder(userId, request);
+        //return orderService.createOrder(userId, request);
+        return orderService.createOrder(userId, userEmail, request);
     }
 
     @GetMapping("/{orderId}")

@@ -81,11 +81,109 @@ function login() {
   }
 }
 
-
 function logout() {
   localStorage.clear();
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 }
+
+function toggleForgotPassword(event) {
+  event.preventDefault();
+  const forgotBox = document.getElementById("forgotPasswordBox");
+  const forgotEmail = document.getElementById("forgotEmail");
+  const loginHeader = document.getElementById("loginHeader");
+  const loginFields = document.getElementById("loginFields");
+  const loginError = document.getElementById("loginError");
+
+  if (!forgotBox || !loginFields) return;
+
+  loginFields.style.display = "none";
+  forgotBox.style.display = "block";
+
+  if (loginHeader) {
+    loginHeader.style.display = "none";
+  }
+
+  if (loginError) {
+    loginError.style.display = "none";
+  }
+
+  if (forgotEmail) {
+    forgotEmail.value = document.getElementById("email")?.value?.trim() || "";
+  }
+}
+
+function showLoginFields(event) {
+  event.preventDefault();
+  const forgotBox = document.getElementById("forgotPasswordBox");
+  const loginFields = document.getElementById("loginFields");
+  const loginHeader = document.getElementById("loginHeader");
+
+  if (forgotBox) forgotBox.style.display = "none";
+  if (loginFields) loginFields.style.display = "block";
+  if (loginHeader) loginHeader.style.display = "block";
+}
+
+function forgotPassword() {
+  const forgotEmailInput = document.getElementById("forgotEmail");
+  const forgotMsg = document.getElementById("forgotMsg");
+  const forgotBtn = document.getElementById("forgotBtn");
+
+  if (!forgotEmailInput || !forgotMsg || !forgotBtn) return;
+
+  const email = forgotEmailInput.value.trim();
+
+  forgotMsg.style.display = "none";
+  forgotMsg.style.color = "red";
+
+  if (!email) {
+    forgotMsg.innerText = "Email is required";
+    forgotMsg.style.display = "block";
+    return;
+  }
+
+  if (!email.includes("@")) {
+    forgotMsg.innerText = "Invalid email format";
+    forgotMsg.style.display = "block";
+    return;
+  }
+
+  forgotBtn.disabled = true;
+  forgotBtn.innerText = "Sending...";
+
+  fetch(`${API_BASE}/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email })
+  })
+    .then(async (res) => {
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(text || "Failed to reset password");
+      }
+      return text;
+    })
+    .then((message) => {
+      forgotMsg.innerText = message || "Temporary password sent to your email";
+      forgotMsg.style.color = "green";
+      forgotMsg.style.display = "block";
+
+      setTimeout(() => {
+        window.location.href = `reset-password.html?email=${encodeURIComponent(email)}`;
+      }, 800);
+    })
+    .catch((err) => {
+      forgotMsg.innerText = err.message || "Failed to reset password";
+      forgotMsg.style.color = "red";
+      forgotMsg.style.display = "block";
+    })
+    .finally(() => {
+      forgotBtn.disabled = false;
+      forgotBtn.innerText = "Send Temporary Password";
+    });
+}
+
 
 function pollOrderStatus(orderId) {
   const token = localStorage.getItem("jwt");

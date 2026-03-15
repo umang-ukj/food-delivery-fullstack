@@ -35,7 +35,7 @@ public class Order {
     private Long userId;
     private String restaurantId;
     private Double totalAmount;
-    
+    private String userEmail;
     private String addressId;
 
     @Enumerated(EnumType.STRING)

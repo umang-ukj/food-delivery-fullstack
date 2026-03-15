@@ -31,5 +31,12 @@ public class JwtUtil {
                 .getBody();
         return claims.get("role", String.class);
     }
+    public String extractEmail(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(key)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
+    }
 
 }

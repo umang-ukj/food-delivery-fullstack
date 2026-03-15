@@ -9,6 +9,7 @@ import com.fd.events.DeliveryEvent;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.repository.OrderRepository;
+import com.fd.order.service.EmailService;
 
 @Component
 public class DeliveryEventConsumer {
@@ -17,9 +18,10 @@ public class DeliveryEventConsumer {
             LoggerFactory.getLogger(DeliveryEventConsumer.class);
 
     private final OrderRepository repository;
-
-    public DeliveryEventConsumer(OrderRepository repository) {
+    private final EmailService emailService;
+    public DeliveryEventConsumer(OrderRepository repository,EmailService emailService) {
         this.repository = repository;
+        this.emailService=emailService;
     }
 
     @KafkaListener(
@@ -57,8 +59,15 @@ public class DeliveryEventConsumer {
     	        }
 
     	        case DELIVERED -> {
-    	            order.setStatus(OrderStatus.DELIVERED);
-    	            log.info("Order {} marked as DELIVERED", order.getId());
+    	            //order.setStatus(OrderStatus.DELIVERED);
+    	            //log.info("Order {} marked as DELIVERED", order.getId());
+    	        	boolean wasDelivered = order.getStatus() == OrderStatus.DELIVERED;
+                    order.setStatus(OrderStatus.DELIVERED);
+                    log.info("Order {} marked as DELIVERED", order.getId());
+
+                    if (!wasDelivered && order.getUserEmail() != null && !order.getUserEmail().isBlank()) {
+                        emailService.sendOrderDeliveredEmail(order.getUserEmail(), order);
+                    }
     	        }
     	    }
 

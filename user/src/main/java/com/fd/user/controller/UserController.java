@@ -2,7 +2,6 @@ package com.fd.user.controller;
 
 import java.util.List;
 
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.fd.user.dto.ForgotPasswordRequest;
 import com.fd.user.dto.AuthResponse;
 import com.fd.user.dto.LoginRequest;
 import com.fd.user.dto.RegisterRequest;
+import com.fd.user.dto.ResetPasswordRequest;
 import com.fd.user.entity.Address;
-import com.fd.user.entity.User;
 import com.fd.user.security.JwtUtil;
 import com.fd.user.service.UserService;
 
@@ -32,11 +31,11 @@ import jakarta.validation.Valid;
 public class UserController {
 
     private final UserService userService;
-    private final JwtUtil jwtUtil;
+    //private final JwtUtil jwtUtil;
     private final Logger log=LoggerFactory.getLogger(UserController.class);
-    public UserController(UserService userService, JwtUtil jwtUtil) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.jwtUtil=jwtUtil;
+       
     }
 
     @PostMapping("/register")
@@ -99,5 +98,16 @@ public class UserController {
         userService.markAsDefault(userId, addressId);
         return ResponseEntity.ok().build();
     }
-
+    
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
+        userService.forgotPassword(req.getEmail());
+        return ResponseEntity.ok("Temporary password sent to your email");
+    }
+    
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
+        userService.resetPassword(req);
+        return ResponseEntity.ok("Password reset successful");
+    }
 }

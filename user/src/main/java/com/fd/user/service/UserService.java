@@ -1,5 +1,6 @@
 package com.fd.user.service;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.fd.user.dto.AuthResponse;
 import com.fd.user.dto.LoginRequest;
 import com.fd.user.dto.RegisterRequest;
+import com.fd.user.dto.ResetPasswordRequest;
 import com.fd.user.entity.Address;
 import com.fd.user.entity.Role;
 import com.fd.user.entity.User;
@@ -27,12 +29,14 @@ public class UserService {
     private final AddressRepository addressRepo;
     private final PasswordEncoder encoder;
     private final JwtUtil jwtUtil;
-
-    public UserService(UserRepository repo, PasswordEncoder encoder, JwtUtil jwtUtil,AddressRepository addressRepo) {
+    private final EmailService emailService;
+    
+    public UserService(UserRepository repo, PasswordEncoder encoder, JwtUtil jwtUtil,AddressRepository addressRepo, EmailService emailService) {
         this.repo = repo;
         this.encoder = encoder;
         this.jwtUtil = jwtUtil;
         this.addressRepo=addressRepo;
+        this.emailService=emailService;
     }
 
     public void register(RegisterRequest req) {
@@ -40,7 +44,12 @@ public class UserService {
         user.setEmail(req.getEmail());
         user.setPassword(encoder.encode(req.getPassword()));
         user.setRole(Role.user);
-        repo.save(user);
+        //repo.save(user);
+        if(repo.existsByEmail(req.getEmail())){
+            throw new RuntimeException("User already exists");
+        }
+        User savedUser = repo.save(user);
+        emailService.sendWelcomeEmail(savedUser.getEmail());
     }
 
     public AuthResponse login(LoginRequest req) {
@@ -121,5 +130,41 @@ public class UserService {
 	    address.setIsDefault(true);
 	}
 
+	public void forgotPassword(String email) {
+        User user = repo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        String temporaryPassword = generateTemporaryPassword();
+        user.setPassword(encoder.encode(temporaryPassword));
+        repo.save(user);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), temporaryPassword);
+    }
+	
+	 public void resetPassword(ResetPasswordRequest req) {
+	        if (!req.getNewPassword().equals(req.getConfirmPassword())) {
+	            throw new RuntimeException("New password and confirm password do not match");
+	        }
+
+	        User user = repo.findByEmail(req.getEmail())
+	                .orElseThrow(() -> new RuntimeException("User not found"));
+
+	        if (!encoder.matches(req.getTemporaryPassword(), user.getPassword())) {
+	            throw new RuntimeException("Invalid temporary password");
+	        }
+
+	        user.setPassword(encoder.encode(req.getNewPassword()));
+	        repo.save(user);
+	    }
+    private String generateTemporaryPassword() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#";
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < 10; i++) {
+            builder.append(chars.charAt(secureRandom.nextInt(chars.length())));
+        }
+
+        return builder.toString();
+    }
 }

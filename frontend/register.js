@@ -35,10 +35,14 @@ document.getElementById("registerForm").addEventListener("submit", async functio
       body: JSON.stringify({ email, password })
     });
 
-    if (!response.ok) {
+    /* if (!response.ok) {
       throw new Error("Registration failed");
-    }
+    } */
 
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.message || "Registration failed");
+  }
     msg.innerText = "Registration successful. Redirecting to login...";
     msg.style.display = "block";
     msg.style.color = "green";
