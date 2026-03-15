@@ -1,6 +1,8 @@
 let token = "";
 const API_BASE = "http://localhost:8080";
 let selectedRestaurantId = null;
+let selectedRestaurantName = null;
+let selectedRestaurantImageUrl = null;
 //let selectedItems = [];
 let cart = [];
 let editingAddressId = null;
@@ -403,6 +405,8 @@ if (!paymentMethod) {
     }) */
    body: JSON.stringify({
   restaurantId: selectedRestaurantId,
+  restaurantName: selectedRestaurantName,
+  restaurantImageUrl: selectedRestaurantImageUrl,
   addressId: document.getElementById("addressSelect").value,
   paymentMethod: paymentMethod,
   items: cart.map(item => ({
@@ -678,7 +682,8 @@ if (!selectedRestaurantId) {
     .then(res => res.json())
     .then(r => {
       document.getElementById("restaurantName").innerText = r.name;
-
+      selectedRestaurantName = r.name || null;
+      selectedRestaurantImageUrl = r.imageUrl || null;
       loadAddresses(r.location);
 
     // auto-fill address form
@@ -895,9 +900,15 @@ function saveAddress() {
 
   resetForm();
 
+  // refresh address list page
+  if (document.getElementById("addressList")) {
+    loadAddressesList();
+  }
+
+  // refresh dropdown if present (menu page)
   const location = document.getElementById("addrLocation")?.value;
-  if (location) {
-    loadAddresses(location); // refresh dropdown
+  if (location && document.getElementById("addressSelect")) {
+    loadAddresses(location);
   }
 })
 .catch(err => {
@@ -923,7 +934,8 @@ function resetForm() {
   if (saveBtn) saveBtn.innerText = "Save Address";
 }
 
-function toggleMenu(id) {
+function toggleMenu(id,event) {
+  if (event) event.stopPropagation(); // prevent document click
   const menu = document.getElementById(`menu-${id}`);
   if (!menu) return;
 
@@ -939,7 +951,7 @@ function toggleMenu(id) {
 }
 
 // close menu when clicking outside
-document.addEventListener("click", e => {
+document.addEventListener("click", function(e) {
   if (!e.target.closest(".menu-container")) {
     closeAllMenus();
   }
@@ -997,7 +1009,7 @@ function markAsDefault(addressId) {
           </div>
 
           <div class="menu-container">
-            <button class="menu-btn" onclick="toggleMenu('${a.addressId}')">⋮</button>
+            <button class="menu-btn" onclick="toggleMenu('${a.addressId}', event)">⋮</button>
 
             <div class="menu-dropdown" id="menu-${a.addressId}">
               <button onclick="startEditAddress(

@@ -44,6 +44,8 @@ public class OrderService {
         Order order = new Order();
         order.setUserId(userId);
         order.setUserEmail(userEmail);
+        order.setRestaurantName(request.getRestaurantName());
+        order.setRestaurantImageUrl(request.getRestaurantImageUrl());
         order.setRestaurantId(request.getRestaurantId());
         order.setStatus(OrderStatus.CREATED);
 

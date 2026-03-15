@@ -37,7 +37,9 @@ public class Order {
     private Double totalAmount;
     private String userEmail;
     private String addressId;
-
+    private String restaurantName;
+    private String restaurantImageUrl;
+    
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 

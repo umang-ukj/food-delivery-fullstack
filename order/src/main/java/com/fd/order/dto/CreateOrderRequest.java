@@ -14,6 +14,8 @@ public class CreateOrderRequest {
     private String restaurantId;
     private List<OrderItemRequest> items;
     private PaymentMethod paymentMethod;
+    private String restaurantName;
+    private String restaurantImageUrl;
     
     public List<OrderItemRequest> getItems() {
 		return items;
@@ -37,6 +39,22 @@ public class CreateOrderRequest {
 
 	public void setPaymentMethod(PaymentMethod paymentMethod) {
 		this.paymentMethod = paymentMethod;
+	}
+
+	public String getRestaurantName() {
+		return restaurantName;
+	}
+
+	public void setRestaurantName(String restaurantName) {
+		this.restaurantName = restaurantName;
+	}
+
+	public String getRestaurantImageUrl() {
+		return restaurantImageUrl;
+	}
+
+	public void setRestaurantImageUrl(String restaurantImageUrl) {
+		this.restaurantImageUrl = restaurantImageUrl;
 	}
 
 }
