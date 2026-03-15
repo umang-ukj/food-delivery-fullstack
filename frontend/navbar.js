@@ -6,6 +6,7 @@ function renderNavbar() {
   const ordersLink = document.getElementById("ordersLink");
   //const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
+  const cartLink = document.getElementById("cartLink");
 
   if (!token) {
     // logged out state
@@ -15,6 +16,7 @@ function renderNavbar() {
     ordersLink.style.display = "inline";
    // loginBtn.style.display = "inline";
     logoutBtn.style.display = "none";
+    cartLink.style.display = "none";
     return;
   }
 
@@ -36,14 +38,49 @@ if (role === "admin") {
     adminLink.style.display = "inline";
     browseLink.style.display = "none";
     ordersLink.style.display = "none";
+    cartLink.style.display = "none";
   } else {
     // USER rules
     adminLink.style.display = "none";
     browseLink.style.display = "inline";
     ordersLink.style.display = "inline";
+    setupCartLink(cartLink);
   }
   setupBrandClick();
 }
+function setupCartLink(cartLink) {
+  if (!cartLink) return;
+
+  const savedCartRaw = localStorage.getItem("fd_cart");
+  if (!savedCartRaw) {
+    cartLink.style.display = "none";
+    cartLink.onclick = null;
+    return;
+  }
+
+  try {
+    const savedCart = JSON.parse(savedCartRaw);
+    const hasItems = Array.isArray(savedCart.items) && savedCart.items.length > 0;
+    const restaurantId = savedCart.restaurantId;
+
+    if (!hasItems || !restaurantId) {
+      cartLink.style.display = "none";
+      cartLink.onclick = null;
+      return;
+    }
+
+    cartLink.style.display = "inline";
+    cartLink.onclick = (e) => {
+      e.preventDefault();
+      localStorage.setItem("selectedRestaurantId", restaurantId);
+      window.location.href = "menu.html";
+    };
+  } catch {
+    cartLink.style.display = "none";
+    cartLink.onclick = null;
+  }
+}
+
 function setupBrandClick() {
   const brand = document.getElementById("brandLink");
   if (!brand) return;

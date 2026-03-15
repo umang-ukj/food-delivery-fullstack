@@ -5,8 +5,58 @@ let selectedRestaurantName = null;
 let selectedRestaurantImageUrl = null;
 //let selectedItems = [];
 let cart = [];
+let cartRestaurantId = null;
+let cartRestaurantName = null;
+let cartRestaurantImageUrl = null;
 let editingAddressId = null;
 let searchTimeout = null;
+
+const CART_STORAGE_KEY = "fd_cart";
+
+function loadCartStateFromStorage() {
+  const raw = localStorage.getItem(CART_STORAGE_KEY);
+
+  if (!raw) {
+    cart = [];
+    cartRestaurantId = null;
+    cartRestaurantName = null;
+    cartRestaurantImageUrl = null;
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    cart = Array.isArray(parsed.items) ? parsed.items : [];
+    cartRestaurantId = parsed.restaurantId || null;
+    cartRestaurantName = parsed.restaurantName || null;
+    cartRestaurantImageUrl = parsed.restaurantImageUrl || null;
+  } catch {
+    cart = [];
+    cartRestaurantId = null;
+    cartRestaurantName = null;
+    cartRestaurantImageUrl = null;
+    localStorage.removeItem(CART_STORAGE_KEY);
+  }
+}
+
+function saveCartState() {
+  const payload = {
+    restaurantId: cartRestaurantId,
+    restaurantName: cartRestaurantName,
+    restaurantImageUrl: cartRestaurantImageUrl,
+    items: cart
+  };
+
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(payload));
+}
+
+function clearCartState() {
+  cart = [];
+  cartRestaurantId = null;
+  cartRestaurantName = null;
+  cartRestaurantImageUrl = null;
+  localStorage.removeItem(CART_STORAGE_KEY);
+}
 
 function getUserRole() {
   const token = localStorage.getItem("jwt");
@@ -340,6 +390,26 @@ function loadRestaurantsByLocation(location) {
 }
 
 function addToCart(item) {
+  if (cart.length > 0 && cartRestaurantId && cartRestaurantId !== selectedRestaurantId) {
+    const sourceRestaurant = cartRestaurantName || "another restaurant";
+    const shouldReplace = window.confirm(
+      `You already have items in cart from \"${sourceRestaurant}\".\nDo you want to clear the cart and add items from this restaurant?`
+    );
+
+    if (!shouldReplace) {
+      renderCart();
+      return;
+    }
+
+    cart = [];
+  }
+
+  if (!cartRestaurantId || cart.length === 0) {
+    cartRestaurantId = selectedRestaurantId;
+    cartRestaurantName = selectedRestaurantName;
+    cartRestaurantImageUrl = selectedRestaurantImageUrl;
+  }
+
   const existing = cart.find(i => i.itemId === item.itemId);
 
   if (existing) {
@@ -404,9 +474,9 @@ if (!paymentMethod) {
       }))
     }) */
    body: JSON.stringify({
-  restaurantId: selectedRestaurantId,
-  restaurantName: selectedRestaurantName,
-  restaurantImageUrl: selectedRestaurantImageUrl,
+  restaurantId: cartRestaurantId || selectedRestaurantId,
+  restaurantName: cartRestaurantName || selectedRestaurantName,
+  restaurantImageUrl: cartRestaurantImageUrl || selectedRestaurantImageUrl,
   addressId: document.getElementById("addressSelect").value,
   paymentMethod: paymentMethod,
   items: cart.map(item => ({
@@ -426,7 +496,8 @@ if (!paymentMethod) {
   })
   .then(order => {
     // clear cart after successful order
-    cart = [];
+    clearCartState();
+    renderCart();
     // STORE ORDER for Razorpay callback
   window.currentOrderId = order.id;
   if (paymentMethod === "CASH") {
@@ -673,7 +744,7 @@ if (!selectedRestaurantId) {
   window.location.href = "restaurants.html";
   return;
 }
-
+  loadCartStateFromStorage();
   fetch(`${API_BASE}/restaurants/${selectedRestaurantId}`, {
     headers: {
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
@@ -732,6 +803,7 @@ if (getUserRole() !== "admin") {
         //li.querySelector("button").onclick = () => addToCart(item);
         menuEl.appendChild(li);
       });
+      renderCart();
     });
 }
 
@@ -748,8 +820,20 @@ if (getUserRole() !== "admin") {
 
 function renderCart() {
   const cartEl = document.getElementById("cart");
+  if (!cartEl) return;
+
   cartEl.innerHTML = "";
 
+  const cartRestaurantNotice = document.getElementById("cartRestaurantNotice");
+  if (cartRestaurantNotice) {
+    if (cart.length > 0 && cartRestaurantName) {
+      cartRestaurantNotice.innerText = `Items from: ${cartRestaurantName}`;
+      cartRestaurantNotice.style.display = "block";
+    } else {
+      cartRestaurantNotice.innerText = "";
+      cartRestaurantNotice.style.display = "none";
+    }
+  }
   let total = 0;
 
   cart.forEach((item, index) => {
@@ -777,6 +861,7 @@ function renderCart() {
   });
 
   document.getElementById("total").innerText = total;
+  saveCartState();
 }
 function increaseQty(index) {
   cart[index].quantity++;
