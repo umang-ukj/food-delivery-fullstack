@@ -2,6 +2,7 @@ server:
   port: 8081
 
 spring:
+  
   application:
     name: user
   datasource:
@@ -15,8 +16,8 @@ spring:
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: umang154l7@gmail.com
-    password: tnqb kjza itqm hsri
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
