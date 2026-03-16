@@ -50,7 +50,10 @@ public class RestaurantService {
     }
 
     public List<Restaurant> getRestaurantsByLocation(String location) {
-        return repository.findByLocation(location);
+    	if (location == null || location.trim().isEmpty()) {
+            return List.of();
+        }
+        return repository.findByLocationIgnoreCase(location.trim());
     }
 
     @CacheEvict(value = {"menu-by-restaurant","restaurant-search"},key = "#restaurantId",allEntries = false)

@@ -10,7 +10,8 @@ import com.fd.restaurant.model.Restaurant;
 
 public interface RestaurantRepository extends MongoRepository<Restaurant, String> {
 
-    List<Restaurant> findByLocation(String location);
+    //List<Restaurant> findByLocation(String location);
+	 List<Restaurant> findByLocationIgnoreCase(String location);
     boolean existsByNameIgnoreCase(String name);
     
     @Query(value = "{}", fields = "{ 'location' : 1 }")

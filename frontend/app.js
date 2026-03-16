@@ -942,22 +942,28 @@ function openLoginPopup() {
 }
 
 function registerAuthListeners() {
+  
+    const refreshPostLoginUi = () => {
+    setupCheckoutAccess();
+    
+    if (typeof renderNavbar === "function") {
+      renderNavbar();
+    }
+    if (currentRestaurantLocation) {
+      loadAddresses(currentRestaurantLocation);
+    }
+    };
+
   window.addEventListener("message", (event) => {
     if (event.origin !== window.location.origin) return;
     if (event.data?.type !== "fd_login_success") return;
 
-    setupCheckoutAccess();
-    if (currentRestaurantLocation) {
-      loadAddresses(currentRestaurantLocation);
-    }
+    refreshPostLoginUi();
   });
 
   window.addEventListener("storage", (event) => {
     if (event.key !== "jwt" || !event.newValue) return;
-    setupCheckoutAccess();
-    if (currentRestaurantLocation) {
-      loadAddresses(currentRestaurantLocation);
-    }
+    refreshPostLoginUi();
   });
 }
 
