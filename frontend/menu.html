@@ -4,7 +4,8 @@
   <title>Menu</title>
   <link rel="stylesheet" href="common.css" />
 <div id="navbar"></div>
-
+</head>
+<body>
 <script>
   fetch("navbar.html")
     .then(res => res.text())
@@ -40,21 +41,24 @@
 
       <hr>
 
-      <h4>Delivery Address</h4>
-      <select id="addressSelect" onchange="enablePlaceOrder()">
-        <option value="">Select address</option>
-      </select>
-      <hr>
-
-      <hr>
-
-      <h4>Payment Method</h4>
-      <div id="paymentMethods" class="payment-methods">
-        <label><input type="radio" name="paymentMethod" value="CASH" checked> Cash</label>
-        <label><input type="radio" name="paymentMethod" value="UPI"> UPI</label>
-        <label><input type="radio" name="paymentMethod" value="CARD"> Card</label>
+      <button id="loginToPlaceOrderBtn" class="primary-btn" style="display:none; margin-top:0;"
+       onclick="openLoginPopup()">Login to place order</button>
+      
+       <div id="addressSection">
+        <h4>Delivery Address</h4>
+        <select id="addressSelect" onchange="enablePlaceOrder()">
+          <option value="">Select address</option>
+        </select>
+        <hr>
       </div>
-
+      <div id="paymentSection">
+        <h4>Payment Method</h4>
+        <div id="paymentMethods" class="payment-methods">
+          <label><input type="radio" name="paymentMethod" value="CASH" checked> Cash</label>
+          <label><input type="radio" name="paymentMethod" value="UPI"> UPI</label>
+          <label><input type="radio" name="paymentMethod" value="CARD"> Card</label>
+        </div>
+      </div>
       <button id="placeOrderBtn" disabled onclick="placeOrder()" class="primary-btn">
         Place Order
       </button>
@@ -66,6 +70,7 @@
 <script src="app.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+  registerAuthListeners();
   loadMenu();
 </script>
 

@@ -1,45 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Food Delivery Platform</title>
+  <title>Food Delivery</title>
   <link rel="stylesheet" href="common.css" />
 </head>
 <body>
+<div class="landing-page">
+  <header class="landing-header">
+    <div class="landing-brand">Food Delivery</div>
+    <button class="landing-login-btn"
+     onclick="window.location.href='login.html'">Sign in</button>
+  </header>
 
-<div id="navbar"></div>
+  <section class="landing-hero">
+    <h1>Order food from your favorite restaurants</h1>
+    <div class="landing-search-row">
+      <input
+        id="landingLocationInput"
+        type="text"
+        placeholder="Enter your delivery location"
+        onkeydown="if (event.key === 'Enter') searchLandingByLocation()"
+      />
+      <button class="primary-btn" onclick="searchLandingByLocation()">Find food</button>
+    </div>
+  </section>
+</div>
+    <div id="landingResults" class="page-container" style="display:none;">
+  <h2 class="page-title">Restaurants in <span id="landingLocationTag"></span></h2>
+  <div id="landingRestaurants" class="restaurant-grid"></div>
+</div>
 
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
-      renderNavbar();
-    });
-</script>
-<script src="navbar.js"></script>
-
-<div class="login-page">
-  <div class="login-card">
-    <h2>Welcome</h2>
-    <p class="subtitle">
-      Login to continue ordering your favorite food
-    </p>
-
-    <form id="loginForm">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="you@example.com" required />
-
-      <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••" required />
-
-      <button id="loginBtn" onclick="login()">Login</button>
-
-    <p id="loginError" class="error-text" style="display:none;"></p>
-    </form>
-
-    <p class="register-text">
-      New user? <a href="register.html">Register here</a>
-    </p>
+  <div id="serviceabilityModal" class="modal-overlay" style="display:none;" onclick="closeServiceabilityPopup()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <h3>Service availability</h3>
+    <p id="serviceabilityMessage"></p>
+    <button class="primary-btn" onclick="closeServiceabilityPopup()">Okay</button>
   </div>
 </div>
 

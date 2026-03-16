@@ -692,3 +692,74 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.landing-page {
+  background: linear-gradient(120deg,#ff6a00,#ff4d00);
+  color: #fff;
+  padding: 22px 30px 70px;
+}
+
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.landing-brand {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.landing-login-btn {
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 22px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.landing-hero {
+  max-width: 780px;
+  margin: 70px auto 0;
+  text-align: center;
+}
+
+.landing-hero h1 {
+  margin-bottom: 26px;
+  font-size: 48px;
+  line-height: 1.15;
+}
+
+.landing-search-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.landing-search-row input {
+  width: min(520px, 70vw);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 16px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 10px;
+  width: min(420px, 92vw);
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.2);
+}
