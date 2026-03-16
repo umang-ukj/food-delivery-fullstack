@@ -1,5 +1,6 @@
 package com.fd.order.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,8 @@ public class Order {
     private String addressId;
     private String restaurantName;
     private String restaurantImageUrl;
-    
+    private LocalDateTime orderedAt;
+    private LocalDateTime deliveredAt;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 

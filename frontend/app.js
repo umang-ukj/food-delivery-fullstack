@@ -618,6 +618,14 @@ if (previousOrders.length > 0) {
 }
   });
 }
+
+function formatOrderTime(dateTimeString) {
+  if (!dateTimeString) return "N/A";
+  const date = new Date(dateTimeString);
+  if (Number.isNaN(date.getTime())) return "N/A";
+  return date.toLocaleTimeString("en-GB", { hour12: false });
+}
+
 function renderOrderItem(order, index, list) {
   const li = document.createElement("li");
 li.style.cursor="pointer;"
@@ -626,7 +634,8 @@ li.style.cursor="pointer;"
       <div class="order-summary">
         <strong>Order #${index + 1}</strong>
         ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
-        Status: ${order.status}
+        Status: ${order.status}<br/>
+        Ordered Time: ${formatOrderTime(order.orderedAt)}
       </div>
 
       <div class="delivery-status">
@@ -681,7 +690,10 @@ function toggleOrderDetails(orderId, orderElement) {
           `<li>${i.name} x ${i.quantity} = ₹${i.price}</li>`
         ).join("")}
       </ul>
-      <strong>Total: ₹${order.totalAmount}</strong>
+      <strong>Total: ₹${order.totalAmount}</strong><br/>
+      <strong>Ordered At:</strong> ${formatOrderTime(order.orderedAt)}<br/>
+      <strong>Delivered At:</strong> ${formatOrderTime(order.deliveredAt)}<br/>
+      <strong>Ordered Place:</strong> ${order.restaurantName || order.restaurantId || "N/A"}
     `;
 
     detailsDiv.style.display = "block";
@@ -853,7 +865,7 @@ function renderCart() {
           <button onclick="decreaseQty(${index})">−</button>
           <span>${item.quantity}</span>
           <button onclick="increaseQty(${index})">+</button>
-          <button onclick="removeFromCart(${index})">❌</button>
+          <button onclick="removeFromCart(${index})">Remove</button>
         </div>
       </div>
     `;

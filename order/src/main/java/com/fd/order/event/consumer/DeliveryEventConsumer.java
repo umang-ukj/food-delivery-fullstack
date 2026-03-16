@@ -1,5 +1,7 @@
 package com.fd.order.event.consumer;
 
+import java.time.LocalDateTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -63,6 +65,7 @@ public class DeliveryEventConsumer {
     	            //log.info("Order {} marked as DELIVERED", order.getId());
     	        	boolean wasDelivered = order.getStatus() == OrderStatus.DELIVERED;
                     order.setStatus(OrderStatus.DELIVERED);
+                    order.setDeliveredAt(LocalDateTime.now());
                     log.info("Order {} marked as DELIVERED", order.getId());
 
                     if (!wasDelivered && order.getUserEmail() != null && !order.getUserEmail().isBlank()) {

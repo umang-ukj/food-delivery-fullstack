@@ -382,7 +382,7 @@ function selectRestaurant(restaurantId) {
       onchange="updateMenuPrice('${item.itemId}', this.value)"
     />
 
-    <button onclick="deleteMenuItem('${item.itemId}')">❌</button>
+    <button onclick="deleteMenuItem('${item.itemId}')">Delete</button>
   `;
 
   menuUl.appendChild(li);

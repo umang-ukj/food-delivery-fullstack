@@ -1,5 +1,7 @@
 package com.fd.order.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -15,7 +17,7 @@ import com.fd.order.entity.OrderItem;
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
-
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final JavaMailSender mailSender;
 
     public EmailService(JavaMailSender mailSender) {
@@ -23,7 +25,7 @@ public class EmailService {
     }
 
     public void sendOrderConfirmationEmail(String toEmail, Order order) {
-        String subject = "Food Delivery - Order Confirmation #" + order.getId();
+        String subject = "Food Delivery - Order Confirmation from " + order.getRestaurantName();
         String body = "Your order has been placed successfully.\n\n"
                 + "Order ID: " + order.getId() + "\n"
                 //+ "Restaurant ID: " + order.getRestaurantId() + "\n"
@@ -31,19 +33,22 @@ public class EmailService {
                 + "Restaurant: " + valueOrNA(order.getRestaurantName()) + "\n"
                 + "Restaurant Image: " + valueOrNA(order.getRestaurantImageUrl()) + "\n"
                 + buildPriceBreakdown(order)
+                + "Ordered Time: " + formatTime(order.getOrderedAt()) + "\n"
                 + "Current Status: " + order.getStatus();
 
         sendEmail(toEmail, subject, body);
     }
     
     public void sendOrderDeliveredEmail(String toEmail, Order order) {
-        String subject = "Food Delivery - Order Delivered #" + order.getId();
+        String subject = "Food Delivery - Order Delivered from " +order.getRestaurantName();
         String body = "Your order has been delivered successfully.\n\n"
                 + "Order ID: " + order.getId() + "\n"
                 //+ "Total Amount: " + order.getTotalAmount() + "\n"
                 + "Restaurant: " + valueOrNA(order.getRestaurantName()) + "\n"
                 + "Restaurant Image: " + valueOrNA(order.getRestaurantImageUrl()) + "\n"
                 + buildPriceBreakdown(order)
+                + "Ordered Time: " + formatTime(order.getOrderedAt()) + "\n"
+                + "Delivered Time: " + formatTime(order.getDeliveredAt()) + "\n"
                 + "Status: " + order.getStatus() + "\n\n"
                 + "Thank you for ordering with Food Delivery!";
 
@@ -91,5 +96,8 @@ public class EmailService {
 
     private String formatCurrency(double amount) {
         return "₹" + String.format(Locale.US, "%.2f", amount);
+    }
+    private String formatTime(LocalDateTime time) {
+        return time == null ? "N/A" : time.format(TIME_FORMATTER);
     }
 }

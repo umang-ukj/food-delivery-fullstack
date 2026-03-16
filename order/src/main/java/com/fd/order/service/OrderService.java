@@ -1,5 +1,6 @@
 package com.fd.order.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class OrderService {
         order.setRestaurantImageUrl(request.getRestaurantImageUrl());
         order.setRestaurantId(request.getRestaurantId());
         order.setStatus(OrderStatus.CREATED);
-
+        order.setOrderedAt(LocalDateTime.now());
         order.setItems(new java.util.ArrayList<>());
         double total = 0;
 
