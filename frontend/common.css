@@ -672,3 +672,23 @@ body {
 .brand-link[href]:hover {
   text-decoration: underline;
 }
+
+.orders-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.orders-pagination button {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.orders-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

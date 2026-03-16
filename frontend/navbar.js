@@ -12,8 +12,8 @@ function renderNavbar() {
     // logged out state
     emailSpan.innerText = "";
     adminLink.style.display = "none";
-    browseLink.style.display = "inline";
-    ordersLink.style.display = "inline";
+    browseLink.style.display = "none";
+    ordersLink.style.display = "none";
    // loginBtn.style.display = "inline";
     logoutBtn.style.display = "none";
     cartLink.style.display = "none";
@@ -113,7 +113,7 @@ function setupBrandClick() {
 
 function logout() {
   localStorage.clear();
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 }
 
 function goToLogin() {

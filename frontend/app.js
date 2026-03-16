@@ -548,11 +548,15 @@ function renderDeliveryStatus(container, finalStatus) {
   }, 400);
 }
 
+let ordersCache = [];
+const ORDERS_PER_PAGE = 5;
+let currentOrdersPage = 1;
 
 function loadOrders() {
   if (!localStorage.getItem("jwt")) {
     alert("Please login first");
   window.location.href = "login.html";
+  return;
 }
   if (getUserRole() === "admin") {
     alert("Admins cannot view orders");
@@ -567,63 +571,67 @@ function loadOrders() {
 })
   .then(res => res.json())
   .then(orders => {
-    const list = document.getElementById("orders");
-    list.innerHTML = "";
+      const list = document.getElementById("orders");
+      const pagination = document.getElementById("ordersPagination");
 
-    /* orders.forEach(order => {
-      const li = document.createElement("li");
-      li.innerText = `Order #${order.id} - ${order.status}`;
-       li.style.cursor = "pointer";
-
-        li.onclick = () => showOrderDetails(order.id);
-        list.appendChild(li);
-    }); */
-    /* orders.forEach((order, index) => {
-  const li = document.createElement("li");
-    li.innerText = `Order #${index + 1} - ${order.status}`;
-    li.style.cursor = "pointer";
-    li.onclick = () => showOrderDetails(order.id);
-    list.appendChild(li);
-}); */
-// latest order = last element
-const latestOrder = orders[orders.length - 1];
-
-// render ONLY latest order
-renderOrderItem(latestOrder, 0, list);
-
-// compute previous orders correctly
-const previousOrders = orders.slice(0, orders.length - 1).reverse();
-
-// show toggle only if needed
-if (previousOrders.length > 0) {
-  const toggle = document.createElement("div");
-  toggle.textContent = "> View previous orders";
-  toggle.style.cursor = "pointer";
-  toggle.style.margin = "12px 0";
-  toggle.style.color = "#007bff";
-
-  let expanded = false;
-
-  toggle.onclick = () => {
-    if (expanded) return;
-    expanded = true;
-    toggle.style.display = "none";
-
-    previousOrders.forEach((order, index) => {
-      renderOrderItem(order, index + 1, list);
-    });
-  };
-
-  list.appendChild(toggle);
-}
+      if (!Array.isArray(orders) || orders.length === 0) {
+        list.innerHTML = "<li>No orders found.</li>";
+        if (pagination) pagination.innerHTML = "";
+        return;
+      }
+      ordersCache = [...orders].reverse();
+      currentOrdersPage = 1;
+      renderOrdersPage(currentOrdersPage);
   });
 }
 
+function renderOrdersPage(page) {
+  const list = document.getElementById("orders");
+  const pagination = document.getElementById("ordersPagination");
+
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  const totalPages = Math.ceil(ordersCache.length / ORDERS_PER_PAGE);
+  currentOrdersPage = Math.min(Math.max(page, 1), totalPages);
+
+  const start = (currentOrdersPage - 1) * ORDERS_PER_PAGE;
+  const pageOrders = ordersCache.slice(start, start + ORDERS_PER_PAGE);
+
+  pageOrders.forEach((order, index) => {
+    renderOrderItem(order, start + index, list);
+  });
+
+  if (pagination) {
+    pagination.innerHTML = "";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "Previous";
+    prevBtn.disabled = currentOrdersPage === 1;
+    prevBtn.onclick = () => renderOrdersPage(currentOrdersPage - 1);
+
+    const pageInfo = document.createElement("span");
+    pageInfo.textContent = `Page ${currentOrdersPage} of ${totalPages}`;
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next";
+    nextBtn.disabled = currentOrdersPage === totalPages;
+    nextBtn.onclick = () => renderOrdersPage(currentOrdersPage + 1);
+
+    pagination.appendChild(prevBtn);
+    pagination.appendChild(pageInfo);
+    pagination.appendChild(nextBtn);
+  }
+}
 function formatOrderTime(dateTimeString) {
   if (!dateTimeString) return "N/A";
   const date = new Date(dateTimeString);
   if (Number.isNaN(date.getTime())) return "N/A";
-  return date.toLocaleTimeString("en-GB", { hour12: false });
+  //return date.toLocaleTimeString("en-GB", { hour12: false });
+  const datePart = date.toLocaleDateString("en-GB");
+  const timePart = date.toLocaleTimeString("en-GB", { hour12: false });
+  return `${datePart} ${timePart}`;
 }
 
 function renderOrderItem(order, index, list) {
@@ -635,7 +643,7 @@ li.style.cursor="pointer;"
         <strong>Order #${index + 1}</strong>
         ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
         Status: ${order.status}<br/>
-        Ordered Time: ${formatOrderTime(order.orderedAt)}
+        
       </div>
 
       <div class="delivery-status">
