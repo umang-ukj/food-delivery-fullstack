@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.fd.order.entity.Order;
@@ -23,7 +24,8 @@ public class EmailService {
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
-
+    
+    @Async
     public void sendOrderConfirmationEmail(String toEmail, Order order) {
         String subject = "Food Delivery - Order Confirmation from " + order.getRestaurantName();
         String body = "Your order has been placed successfully.\n\n"
@@ -38,7 +40,7 @@ public class EmailService {
 
         sendEmail(toEmail, subject, body);
     }
-    
+    @Async
     public void sendOrderDeliveredEmail(String toEmail, Order order) {
         String subject = "Food Delivery - Order Delivered from " +order.getRestaurantName();
         String body = "Your order has been delivered successfully.\n\n"
