@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .pathMatchers("/restaurants/**").authenticated()
                 .pathMatchers("/orders/**").authenticated()
                 .pathMatchers("/payments/**").authenticated()
+                .pathMatchers("/delivery/**").authenticated()
                 .anyExchange().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt());
