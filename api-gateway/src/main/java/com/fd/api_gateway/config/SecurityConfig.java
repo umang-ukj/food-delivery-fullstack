@@ -19,6 +19,14 @@ public class SecurityConfig {
             .authorizeExchange(exchanges -> exchanges
             	.pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .pathMatchers("/auth/**").permitAll()
+                .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/webjars/**", "/v3/api-docs/**").permitAll()
+                .pathMatchers(
+                    "/user/v3/api-docs",
+                    "/restaurants/v3/api-docs",
+                    "/orders/v3/api-docs",
+                    "/payments/v3/api-docs",
+                    "/delivery/v3/api-docs"
+                ).permitAll()
                 .pathMatchers(HttpMethod.GET, "/restaurants/**").permitAll()
                 .pathMatchers("/restaurants/**").authenticated()
                 .pathMatchers("/orders/**").authenticated()

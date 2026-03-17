@@ -62,4 +62,19 @@ management:
         request:
           autotime:
             enabled: true 
-    
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    urls:
+      - name: User Service
+        url: /user/v3/api-docs
+      - name: Restaurant Service
+        url: /restaurants/v3/api-docs
+      - name: Order Service
+        url: /orders/v3/api-docs
+      - name: Payment Service
+        url: /payments/v3/api-docs
+      - name: Delivery Service
+        url: /delivery/v3/api-docs  
+        

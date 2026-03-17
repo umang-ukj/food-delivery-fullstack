@@ -21,6 +21,21 @@ public class RouteConfig {
                     .uri("lb://payment"))
             .route("delivery", r -> r.path("/delivery","/delivery/**")
                     .uri("lb://delivery"))
+            .route("user-docs", r -> r.path("/user/v3/api-docs")
+                    .filters(f -> f.setPath("/v3/api-docs"))
+                    .uri("lb://user"))
+                .route("restaurant-docs", r -> r.path("/restaurants/v3/api-docs")
+                    .filters(f -> f.setPath("/v3/api-docs"))
+                    .uri("lb://restaurant"))
+                .route("order-docs", r -> r.path("/orders/v3/api-docs")
+                    .filters(f -> f.setPath("/v3/api-docs"))
+                    .uri("lb://order"))
+                .route("payment-docs", r -> r.path("/payments/v3/api-docs")
+                    .filters(f -> f.setPath("/v3/api-docs"))
+                    .uri("lb://payment"))
+                .route("delivery-docs", r -> r.path("/delivery/v3/api-docs")
+                    .filters(f -> f.setPath("/v3/api-docs"))
+                    .uri("lb://delivery"))
             .build();
 	}
 }
