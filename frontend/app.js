@@ -641,9 +641,12 @@ function renderOrderItem(order, index, list) {
   li.innerHTML = `
     <div class="order-card">
       <div class="order-summary">
-        <strong>Order #${index + 1}</strong>
-        ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
-        Status: ${order.status}<br/>
+        <div>
+          <strong>Order #${index + 1}</strong>
+          ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
+          Status: ${order.status}<br/>
+        </div>
+        <button class="reorder-btn" onclick="reorderOrderById('${order.id}', event)">Reorder</button>
         
       </div>
 
@@ -702,13 +705,91 @@ function toggleOrderDetails(orderId, orderElement) {
       <strong>Total: ₹${order.totalAmount}</strong><br/>
       <strong>Ordered At:</strong> ${formatOrderTime(order.orderedAt)}<br/>
       <strong>Delivered At:</strong> ${formatOrderTime(order.deliveredAt)}<br/>
-      <strong>Ordered Place:</strong> ${order.restaurantName || order.restaurantId || "N/A"}
+      <strong>Ordered Place:</strong> ${order.restaurantName || order.restaurantId || "N/A"}<br/>
+      <button class="reorder-btn reorder-btn-inline" onclick="reorderOrderById('${order.id}', event)">Reorder this order</button>
     `;
 
       detailsDiv.style.display = "block";
     });
 }
+function normalizeReorderItems(items = []) {
+  if (!Array.isArray(items)) return [];
 
+  return items
+    .map(item => ({
+      ...item,
+      itemId: item?.itemId || item?.menuItemId || item?.id || null
+    }))
+    .filter(item => item && item.itemId && item.name)
+    .map(item => ({
+      itemId: item.itemId,
+      name: item.name,
+      price: Number(item.price) || 0,
+      quantity: Math.max(Number(item.quantity) || 1, 1)
+    }));
+}
+
+function reorderFromOrder(order) {
+  if (!order || !order.restaurantId) {
+    alert("Reorder is unavailable for this order.");
+    return;
+  }
+
+  const nextCartItems = normalizeReorderItems(order.items);
+  if (nextCartItems.length === 0) {
+    alert("This order has no available items to reorder.");
+    return;
+  }
+  loadCartStateFromStorage();
+  const isDifferentRestaurant = cart.length > 0 && cartRestaurantId && cartRestaurantId !== order.restaurantId;
+
+  if (isDifferentRestaurant) {
+    const currentSource = cartRestaurantName || "another restaurant";
+    const shouldReplace = confirm(
+      `Your cart currently has items from "${currentSource}". Do you want to replace it with this reordered cart?`
+    );
+
+    if (!shouldReplace) return;
+  }
+
+  cart = nextCartItems;
+  cartRestaurantId = order.restaurantId;
+  cartRestaurantName = order.restaurantName || null;
+  cartRestaurantImageUrl = order.restaurantImageUrl || null;
+  localStorage.setItem("selectedRestaurantId", order.restaurantId);
+  saveCartState();
+
+  alert("Previous order added to cart. Review items and place order.");
+  window.location.href = "menu.html";
+}
+
+function reorderOrderById(orderId, event) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  if (!orderId) {
+    alert("Order not found for reorder.");
+    return;
+  }
+
+  fetch(`${API_BASE}/orders/${orderId}`, {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+  .then(res => {
+      if (!res.ok) {
+        throw new Error(`Failed to load order (${res.status})`);
+      }
+      return res.json();
+    })
+    .then(order => reorderFromOrder(order))
+    .catch(err => {
+      console.error("Reorder failed", err);
+      alert("Unable to reorder right now. Please try again.");
+    });
+}
 /* function showOrderDetails(orderId) {
   fetch(`${API_BASE}/orders/${orderId}`, {
     headers: {
@@ -805,17 +886,17 @@ function loadMenu() {
       renderCart();
     });
 }
-        function renderMenuItems(menuItems = []) {
+function renderMenuItems(menuItems = []) {
   const menuEl = document.getElementById("menu");
   if (!menuEl) return;
   menuEl.innerHTML = "";
 
-       const filteredItems = menuItems.filter(item => {
+  const filteredItems = menuItems.filter(item => {
     if (menuDietFilter === "veg") return item.isVeg === true;
     if (menuDietFilter === "non-veg") return item.isVeg !== true;
     return true;
   });
-if (filteredItems.length === 0) {
+  if (filteredItems.length === 0) {
     menuEl.innerHTML = "<li>No menu items match this filter.</li>";
     return;
   }
@@ -951,17 +1032,17 @@ function openLoginPopup() {
 }
 
 function registerAuthListeners() {
-  
-    const refreshPostLoginUi = () => {
+
+  const refreshPostLoginUi = () => {
     setupCheckoutAccess();
-    
+
     if (typeof renderNavbar === "function") {
       renderNavbar();
     }
     if (currentRestaurantLocation) {
       loadAddresses(currentRestaurantLocation);
     }
-    };
+  };
 
   window.addEventListener("message", (event) => {
     if (event.origin !== window.location.origin) return;

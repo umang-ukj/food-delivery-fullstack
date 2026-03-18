@@ -692,6 +692,22 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.reorder-btn {
+  border: 1px solid #ff5722;
+  background: #fff3ee;
+  color: #ff5722;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reorder-btn:hover {
+  background: #ffe4d9;
+}
+.reorder-btn-inline {
+  margin-top: 12px;
+}
 
 .landing-page {
   background: linear-gradient(120deg,#ff6a00,#ff4d00);

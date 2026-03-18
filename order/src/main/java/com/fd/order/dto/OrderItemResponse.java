@@ -12,12 +12,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OrderItemResponse {
-
+	private String itemId;
     private String name;
     private int price;
     private int quantity;
 
     public OrderItemResponse(OrderItem item) {
+    	this.itemId=item.getItemId();
         this.name = item.getName();
         this.price = item.getPrice();
         this.quantity = item.getQuantity();

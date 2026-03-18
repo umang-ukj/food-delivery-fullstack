@@ -1,37 +1,41 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>My Orders</title>
-<link rel="stylesheet" href="common.css" />
+  <link rel="stylesheet" href="common.css" />
 
 </head>
 
 <body>
 
-<div id="navbar"></div>
+  <div id="navbar"></div>
 
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
-      renderNavbar();
-    });
-</script>
-<script src="navbar.js"></script>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+        renderNavbar();
+      });
+  </script>
+  <script src="navbar.js"></script>
 
-<div class="page-container">
+  <div class="page-container">
 
-  <h2 class="page-title">My Orders</h2>
-  <div id="ordersPagination" class="orders-pagination"></div>
-  <!-- Orders list -->
-  <ul id="orders" class="orders-list"></ul>
-  
-</div>
-<script src="app.js"></script>
-<script>
-  loadOrders();
-</script>
+    <h2 class="page-title">My Orders</h2>
+    <p style="margin-top:-4px;color:#555;">Use <b>Reorder
+      </b> to refill your cart from a previous order and checkout again.</p>
+    <div id="ordersPagination" class="orders-pagination"></div>
+    <!-- Orders list -->
+    <ul id="orders" class="orders-list"></ul>
+
+  </div>
+  <script src="app.js"></script>
+  <script>
+    loadOrders();
+  </script>
 
 </body>
+
 </html>

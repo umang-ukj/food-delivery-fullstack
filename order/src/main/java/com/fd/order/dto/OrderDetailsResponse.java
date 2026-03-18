@@ -21,6 +21,7 @@ public class OrderDetailsResponse {
     private String status;
     private Double totalAmount;
     private List<OrderItemResponse> items;
+    private String restaurantImageUrl;
     private LocalDateTime orderedAt;
     private LocalDateTime deliveredAt;
     
@@ -28,6 +29,7 @@ public class OrderDetailsResponse {
         this.id = order.getId();
         this.restaurantId = order.getRestaurantId();
         this.restaurantName=order.getRestaurantName();
+        this.restaurantImageUrl = order.getRestaurantImageUrl();
         this.status = order.getStatus().name();
         this.totalAmount = order.getTotalAmount();
         this.items = order.getItems().stream()
