@@ -1,72 +1,78 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Restaurants</title>
   <link rel="stylesheet" href="common.css" />
 </head>
+
 <body>
 
-<div id="navbar"></div>
-<script src="navbar.js"></script>
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
-      renderNavbar();
-    });
-</script>
+  <div id="navbar"></div>
+  <script src="navbar.js"></script>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+        renderNavbar();
+      });
+  </script>
 
-<div class="page-container">
+  <div class="page-container">
 
-  <h2 class="page-title">Browse Restaurants</h2>
+    <h2 class="page-title">Browse Restaurants</h2>
 
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
 
-    <div class="filter-item">
-      <label>Location</label>
-      <select id="locationFilter" onchange="filterByLocation()">
-        <option value="">All Locations</option>
-      </select>
+      <div class="filter-item">
+        <label>Location</label>
+        <select id="locationFilter" onchange="filterByLocation()">
+          <option value="">All Locations</option>
+        </select>
+      </div>
+
+      <div class="filter-item search-box">
+        <label>Search</label>
+        <input type="text" id="searchInput" placeholder="Search restaurants or dishes..."
+          onkeyup="searchRestaurants()" />
+        <div id="searchSuggestions" class="suggestions"></div>
+      </div>
+      <div class="filter-item">
+        <label>Dish Type</label>
+        <select id="dishTypeFilter" onchange="setRestaurantDietFilter()">
+          <option value="all" selected>All</option>
+          <option value="veg">Veg only</option>
+          <option value="non-veg">Non-veg only</option>
+        </select>
+      </div>
     </div>
 
-    <div class="filter-item search-box">
-      <label>Search</label>
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Search restaurants or dishes..."
-        onkeyup="searchRestaurants()"
-      />
-      <div id="searchSuggestions" class="suggestions"></div>
-    </div>
+    <!-- RESTAURANTS GRID -->
+    <div id="restaurants" class="restaurant-grid"></div>
 
   </div>
+  <style>
+    .page-container {
+      margin-top: 20px;
+    }
 
-  <!-- RESTAURANTS GRID -->
-  <div id="restaurants" class="restaurant-grid"></div>
+    .page-title {
+      margin-bottom: 16px;
+    }
 
-</div>
-<style>
-  .page-container {
-    margin-top: 20px;
-  }
-  .page-title {
-  margin-bottom: 16px;
-}
+    .filter-bar {
+      margin-bottom: 24px;
+    }
+  </style>
 
-.filter-bar {
-  margin-bottom: 24px;
-}
-
-</style>
-
-<script src="app.js"></script>
-<script>
-  loadLocations();
-  loadRestaurants();
-</script>
+  <script src="app.js"></script>
+  <script>
+    loadLocations();
+    loadRestaurants();
+  </script>
 
 </body>
+
 </html>

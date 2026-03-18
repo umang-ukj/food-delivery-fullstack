@@ -11,6 +11,8 @@ let cartRestaurantImageUrl = null;
 let editingAddressId = null;
 let searchTimeout = null;
 let currentRestaurantLocation = null;
+let restaurantDietFilter = "all";
+let menuDietFilter = "all";
 const CART_STORAGE_KEY = "fd_cart";
 
 function loadCartStateFromStorage() {
@@ -333,24 +335,7 @@ function loadRestaurants() {
         return;
       }
       const container = document.getElementById("restaurants");
-      container.innerHTML = "";
-
-      restaurants.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "restaurant-card";
-        card.innerHTML = `
-    
-      <img 
-            src="${r.imageUrl || '/images/default-restaurant.png'}"
-            style="width:100%;height:140px;object-fit:cover;border-radius:6px;"
-          />
-          <h3>${r.name}</h3>
-          <p>${r.location}</p>
-          <button onclick="openMenu('${r.id}')">View Menu</button>
-        `;
-
-        container.appendChild(card);
-      });
+      renderRestaurantCards(restaurants, container);
     });
 }
 function openMenu(restaurantId) {
@@ -788,6 +773,11 @@ function loadMenu() {
   })
     .then(res => res.json())
     .then(r => {
+      if (r.open === false) {
+        alert("This restaurant is currently closed.");
+        window.location.href = "restaurants.html";
+        return;
+      }
       document.getElementById("restaurantName").innerText = r.name;
       selectedRestaurantName = r.name || null;
       selectedRestaurantImageUrl = r.imageUrl || null;
@@ -806,46 +796,65 @@ function loadMenu() {
       }
 
       const menuEl = document.getElementById("menu");
-      menuEl.innerHTML = "";
+      //menuEl.innerHTML = "";
       if (!Array.isArray(r.menu)) {
         console.error("Menu is not an array:", r.menu);
         return;
       }
-      r.menu.forEach(item => {
-        const li = document.createElement("li");
-
-        // li.style.display = "flex";
-        li.style.alignItems = "center";
-        li.style.gap = "12px";
-
-        li.innerHTML = `
-          <img
-            src="${item.imageUrl || '/images/default-food.png'}"
-            style="
-              width:80px;
-              height:60px;
-              object-fit:cover;
-              border-radius:6px;
-            "
-          />
-
-          <div style="flex:1">
-            <strong>${item.name}</strong><br>
-            ₹${item.price}
-          </div>
-        `;
-
-        if (getUserRole() !== "admin") {
-          const btn = document.createElement("button");
-          btn.innerText = "Add";
-          btn.onclick = () => addToCart(item);
-          li.appendChild(btn);
-        }
-        //li.querySelector("button").onclick = () => addToCart(item);
-        menuEl.appendChild(li);
-      });
+      renderMenuItems(r.menu);
       renderCart();
     });
+}
+        function renderMenuItems(menuItems = []) {
+  const menuEl = document.getElementById("menu");
+  if (!menuEl) return;
+  menuEl.innerHTML = "";
+
+       const filteredItems = menuItems.filter(item => {
+    if (menuDietFilter === "veg") return item.isVeg === true;
+    if (menuDietFilter === "non-veg") return item.isVeg !== true;
+    return true;
+  });
+if (filteredItems.length === 0) {
+    menuEl.innerHTML = "<li>No menu items match this filter.</li>";
+    return;
+  }
+
+  filteredItems.forEach(item => {
+    const li = document.createElement("li");
+    const isAvailable = item.available !== false;
+    const vegLabel = item.isVeg === true ? "Veg" : "Non-veg";
+    li.style.alignItems = "center";
+    li.style.gap = "12px";
+
+    li.innerHTML = `
+      <img
+        src="${item.imageUrl || '/images/default-food.png'}"
+        style="
+          width:80px;
+          height:60px;
+          object-fit:cover;
+          border-radius:6px;
+        "
+      />
+
+      <div style="flex:1">
+        <strong>${item.name}</strong><br>
+        ₹${item.price}<br>
+        <small style="color:#666;">${vegLabel}</small>
+        ${isAvailable ? "" : '<br><small style="color:#c62828;font-weight:600;">Out of stock</small>'}
+      </div>
+    `;
+
+    if (getUserRole() !== "admin") {
+      const btn = document.createElement("button");
+      btn.innerText = isAvailable ? "Add" : "Out of stock";
+      btn.disabled = !isAvailable;
+      btn.onclick = () => addToCart(item);
+      li.appendChild(btn);
+    }
+    menuEl.appendChild(li);
+  });
 }
 
 
@@ -1001,8 +1010,23 @@ function searchLandingByLocation() {
 function renderRestaurantCards(restaurants, container) {
   if (!container) return;
   container.innerHTML = "";
+  const openRestaurants = restaurants.filter(r => r.open !== false);
+  const filteredRestaurants = openRestaurants.filter(r => {
+    const menu = Array.isArray(r.menu) ? r.menu : [];
+    if (restaurantDietFilter === "veg") {
+      return menu.some(item => item.isVeg === true);
+    }
+    if (restaurantDietFilter === "non-veg") {
+      return menu.some(item => item.isVeg !== true);
+    }
+    return true;
+  });
+  if (filteredRestaurants.length === 0) {
+    container.innerHTML = "<p>No restaurants found</p>";
+    return;
+  }
 
-  restaurants.forEach(r => {
+  filteredRestaurants.forEach(r => {
     const card = document.createElement("div");
     card.className = "restaurant-card";
     card.innerHTML = `
@@ -1033,7 +1057,30 @@ function closeServiceabilityPopup() {
     modal.style.display = "none";
   }
 }
-
+function setRestaurantDietFilter() {
+  const dropdown = document.getElementById("dishTypeFilter");
+  if (!dropdown) return;
+  restaurantDietFilter = dropdown.value;
+  const locationDropdown = document.getElementById("locationFilter");
+  if (locationDropdown && locationDropdown.value) {
+    loadRestaurantsByLocation(locationDropdown.value);
+    return;
+  }
+  loadRestaurants();
+}
+function setMenuDietFilter() {
+  const dropdown = document.getElementById("menuDishTypeFilter");
+  if (!dropdown) return;
+  menuDietFilter = dropdown.value;
+  fetch(`${API_BASE}/restaurants/${selectedRestaurantId}`, {
+    headers: localStorage.getItem("jwt")
+      ? { "Authorization": `Bearer ${localStorage.getItem("jwt")}` }
+      : {}
+  })
+    .then(res => res.json())
+    .then(r => renderMenuItems(Array.isArray(r.menu) ? r.menu : []))
+    .catch(err => console.error("Failed to apply menu filter", err));
+}
 function increaseQty(index) {
   cart[index].quantity++;
   renderCart();
@@ -1510,7 +1557,12 @@ function renderSearchResults(results) {
     return;
   }
 
-  results.forEach(r => {
+  const openResults = results.filter(r => r.open !== false);
+  if (openResults.length === 0) {
+    container.innerHTML = "<p>No results found</p>";
+    return;
+  }
+  openResults.forEach(r => {
     const card = document.createElement("div");
     card.className = "restaurant-card";
 

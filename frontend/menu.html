@@ -1,79 +1,90 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Menu</title>
   <link rel="stylesheet" href="common.css" />
-<div id="navbar"></div>
+  <div id="navbar"></div>
 </head>
+
 <body>
   <script src="navbar.js"></script>
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
-      renderNavbar();
-    });
-</script>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+        renderNavbar();
+      });
+  </script>
 
 
-<div class="page-container">
+  <div class="page-container">
 
-  <h2 id="restaurantName" class="page-title"></h2>
+    <h2 id="restaurantName" class="page-title"></h2>
 
-  <div class="menu-layout">
+    <div class="menu-layout">
 
-    <!-- MENU -->
-    <div class="menu-section">
-      <h3>Menu</h3>
-      <ul id="menu" class="menu-list"></ul>
-    </div>
-
-    <!-- CART -->
-    <div class="cart-section">
-
-      <h3>Your Cart</h3>
-      <div id="cartRestaurantNotice" style="display:none; font-size:13px; color:#555; margin-bottom:8px;"></div>
-      <ul id="cart" class="cart-list"></ul>
-
-      <div class="cart-total">
-        Total: ₹<span id="total">0</span>
-      </div>
-
-      <hr>
-
-      <button id="loginToPlaceOrderBtn" class="primary-btn" style="display:none; margin-top:0;"
-       onclick="openLoginPopup()">Login to place order</button>
-      
-       <div id="addressSection">
-        <h4>Delivery Address</h4>
-        <select id="addressSelect" onchange="enablePlaceOrder()">
-          <option value="">Select address</option>
-        </select>
-        <hr>
-      </div>
-      <div id="paymentSection">
-        <h4>Payment Method</h4>
-        <div id="paymentMethods" class="payment-methods">
-          <label><input type="radio" name="paymentMethod" value="CASH" checked> Cash</label>
-          <label><input type="radio" name="paymentMethod" value="UPI"> UPI</label>
-          <label><input type="radio" name="paymentMethod" value="CARD"> Card</label>
+      <!-- MENU -->
+      <div class="menu-section">
+        <h3>Menu</h3>
+        <div style="margin-bottom: 12px;">
+          <label for="menuDishTypeFilter">Dish Type:</label>
+          <select id="menuDishTypeFilter" onchange="setMenuDietFilter()">
+            <option value="all" selected>All</option>
+            <option value="veg">Veg only</option>
+            <option value="non-veg">Non-veg only</option>
+          </select>
         </div>
+        <ul id="menu" class="menu-list"></ul>
       </div>
-      <button id="placeOrderBtn" disabled onclick="placeOrder()" class="primary-btn">
-        Place Order
-      </button>
 
+      <!-- CART -->
+      <div class="cart-section">
+
+        <h3>Your Cart</h3>
+        <div id="cartRestaurantNotice" style="display:none; font-size:13px; color:#555; margin-bottom:8px;"></div>
+        <ul id="cart" class="cart-list"></ul>
+
+        <div class="cart-total">
+          Total: ₹<span id="total">0</span>
+        </div>
+
+        <hr>
+
+        <button id="loginToPlaceOrderBtn" class="primary-btn" style="display:none; margin-top:0;"
+          onclick="openLoginPopup()">Login to place order</button>
+
+        <div id="addressSection">
+          <h4>Delivery Address</h4>
+          <select id="addressSelect" onchange="enablePlaceOrder()">
+            <option value="">Select address</option>
+          </select>
+          <hr>
+        </div>
+        <div id="paymentSection">
+          <h4>Payment Method</h4>
+          <div id="paymentMethods" class="payment-methods">
+            <label><input type="radio" name="paymentMethod" value="CASH" checked> Cash</label>
+            <label><input type="radio" name="paymentMethod" value="UPI"> UPI</label>
+            <label><input type="radio" name="paymentMethod" value="CARD"> Card</label>
+          </div>
+        </div>
+        <button id="placeOrderBtn" disabled onclick="placeOrder()" class="primary-btn">
+          Place Order
+        </button>
+
+      </div>
     </div>
-  </div>
 
-</div>
-<script src="app.js"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-  registerAuthListeners();
-  loadMenu();
-</script>
+  </div>
+  <script src="app.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    registerAuthListeners();
+    loadMenu();
+  </script>
 
 </body>
+
 </html>

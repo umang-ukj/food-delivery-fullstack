@@ -21,7 +21,7 @@ public class MenuItem {
     @NotNull(message = "Price is required")
     @Positive(message = "Price must be greater than 0")
     private double price;
-    
+    private Boolean isVeg;    
     private Boolean available;
     private String imageUrl;
 
@@ -43,9 +43,6 @@ public class MenuItem {
 	public void setPrice(double price) {
 		this.price = price;
 	}
-	public boolean isAvailable() {
-		return available;
-	}
 	public void setAvailable(Boolean available) {
 		this.available = available;
 	}
@@ -54,6 +51,15 @@ public class MenuItem {
 	}
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
+	}
+	public Boolean getIsVeg() {
+		return isVeg;
+	}
+	public void setIsVeg(Boolean isVeg) {
+		this.isVeg = isVeg;
+	}
+	public Boolean getAvailable() {
+		return available;
 	}
     
     

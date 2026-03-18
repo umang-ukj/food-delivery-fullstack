@@ -45,6 +45,9 @@ public class RestaurantService {
     	if (restaurant.getImageUrl() == null || restaurant.getImageUrl().isBlank()) {
     	    restaurant.setImageUrl("/images/default-restaurant.png");
     	}
+    	if (restaurant.getOpen() == null) {
+            restaurant.setOpen(true);
+        }
 
         return repository.save(restaurant);
     }
@@ -56,11 +59,17 @@ public class RestaurantService {
         return repository.findByLocationIgnoreCase(location.trim());
     }
 
-    @CacheEvict(value = {"menu-by-restaurant","restaurant-search"},key = "#restaurantId",allEntries = false)
+    @CacheEvict(value = {"menu-by-restaurant","restaurant-search","restaurants"}, allEntries = true)
     public Restaurant addMenuItem(String restaurantId, MenuItem item) {
     	if (item.getImageUrl() == null || item.getImageUrl().isBlank()) {
     	    item.setImageUrl("/images/default-food.png");
     	}
+    	if (item.getAvailable() == null) {
+            item.setAvailable(true);
+        }
+        if (item.getIsVeg() == null) {
+            item.setIsVeg(false);
+        }
         Restaurant restaurant = repository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
@@ -88,7 +97,7 @@ public class RestaurantService {
 		return repository.findById(id).orElseThrow(()->new RuntimeException("restaurant not found"));
 	}
 	
-    @CacheEvict( value = "menu-by-restaurant", key = "#restaurantId")
+    @CacheEvict( value = { "menu-by-restaurant", "restaurants", "restaurant-search" }, allEntries = true)
 	public void deleteMenuItem(String restaurantId, String itemId) {
 	    Restaurant restaurant = repository.findById(restaurantId)
 	            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
@@ -103,7 +112,7 @@ public class RestaurantService {
 	    repository.save(restaurant);
 	}
 	
-    @CacheEvict(value = "menu-by-restaurant", key = "#restaurantId")
+    @CacheEvict(value = { "menu-by-restaurant", "restaurants", "restaurant-search" }, allEntries = true)
     public Restaurant updateMenuItem(String restaurantId,String itemId,MenuItemRequest request) {
 
         Restaurant restaurant = repository.findById(restaurantId)
@@ -125,7 +134,9 @@ public class RestaurantService {
         if (request.getAvailable() != null) {
             menuItem.setAvailable(request.getAvailable());
         }
-
+        if (request.getIsVeg() != null) {
+            menuItem.setIsVeg(request.getIsVeg());
+        }
         if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
             menuItem.setImageUrl(request.getImageUrl());
         }
@@ -180,7 +191,7 @@ public class RestaurantService {
 	    if (query == null || query.trim().isEmpty()) {
 	        return List.of(); // not to return null, breaks search suggestion as redis caching is implemented
 	    }
-	    return restaurants.stream()
+	    return restaurants.stream().filter(r -> r.getOpen() == null || Boolean.TRUE.equals(r.getOpen()))
 	        .map(r -> {
 	            List<String> matchedMenus = r.getMenu() == null
 	                ? List.of()

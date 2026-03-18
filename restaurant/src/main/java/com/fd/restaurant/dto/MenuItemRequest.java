@@ -14,5 +14,6 @@ public class MenuItemRequest {
     private Integer price;
     private Boolean available;
     private String imageUrl;
+    private Boolean isVeg;
 }
 
