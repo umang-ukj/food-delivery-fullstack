@@ -571,7 +571,9 @@ body {
 .step.active[data-step="DELIVERED"] {
   background-color: #2e7d32;
 }
-
+.step.active[data-step="CANCELLED"] {
+  background-color: #c62828;
+}
 /* Order details */
 .order-details {
   margin-top: 10px;
@@ -708,7 +710,19 @@ body {
 .reorder-btn-inline {
   margin-top: 12px;
 }
+.cancel-btn {
+  border: 1px solid #d32f2f;
+  background: #fff5f5;
+  color: #d32f2f;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
+.cancel-btn:hover {
+  background: #ffe5e5;
+}
 .landing-page {
   background: linear-gradient(120deg,#ff6a00,#ff4d00);
   color: #fff;

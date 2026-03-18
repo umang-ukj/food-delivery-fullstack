@@ -67,4 +67,23 @@ public class OrderController {
                 .map(OrderResponse::new)
                 .toList();
     }
+    @PostMapping("/{orderId}/cancel")
+    public OrderDetailsResponse cancelOrder(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long orderId) {
+        String token = authHeader.substring(7);
+        Long userId = jwtUtil.extractUserId(token);
+        if (!"user".equals(jwtUtil.extractRole(token))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admins cannot cancel orders");
+        }
+
+        try {
+            Order order = orderService.cancelOrder(userId, orderId);
+            return new OrderDetailsResponse(order);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
+        }
+    }
 }

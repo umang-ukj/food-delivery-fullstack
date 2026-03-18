@@ -29,6 +29,10 @@ public class OrderEventConsumer {
 		 * 
 		 * }
 		 */
+    	if (event.getPaymentMethod() == null) {
+            log.info("Ignoring non-create order event for orderId={}", event.getOrderId());
+            return;
+        }
     	log.info("Received ORDER_CREATED event for orderId={}, paymentMethod={}",event.getOrderId(), event.getPaymentMethod());
 
     	paymentService.processPayment(event);

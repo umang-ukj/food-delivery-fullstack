@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.delivery.producer.DeliveryEventProducer;
 import com.example.delivery.service.DeliveryService;
+import com.fd.events.OrderCancelledEvent;
 import com.fd.events.OrderConfirmedEvent;
 import com.fd.events.PaymentEvent;
 import com.fd.events.PaymentStatus;
@@ -22,7 +23,10 @@ public class OrderConfirmedEventConsumer {
 		this.deliveryEventProducer=deliveryEventProducer;
 		this.service=service;
 	}
-
+	
+	public OrderConfirmedEventConsumer(DeliveryService service) {
+		this.service=service;
+	}
 	/*
 	 * @KafkaListener(topics = "order-confirmed-events", containerFactory =
 	 * "orderConfirmedKafkaListenerContainerFactory") public void
@@ -40,14 +44,17 @@ public class OrderConfirmedEventConsumer {
 	 * }
 	 */
 	@KafkaListener(topics = "order-confirmed-events",containerFactory ="orderConfirmedKafkaListenerContainerFactory")
-			public void handlePaymentEvent(OrderConfirmedEvent event) {
+	public void handlePaymentEvent(OrderConfirmedEvent event) {
 
-			   
+		log.info("Payment confirmed. Starting delivery for orderId={}", event.getOrderId());
 
-			    log.info("Payment confirmed. Starting delivery for orderId={}", event.getOrderId());
-
-			    service.createDelivery(event.getOrderId());
-			}
-
+		service.createDelivery(event.getOrderId());
+	}
+    
+	@KafkaListener(topics = "order-events", containerFactory = "orderCancelledKafkaListenerContainerFactory")
+    public void handleOrderCancelled(OrderCancelledEvent event) {
+        log.info("Received ORDER_CANCELLED event for orderId={}", event.getOrderId());
+        service.cancelDelivery(event.getOrderId());
+    }
 }
 

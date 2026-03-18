@@ -8,6 +8,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import com.fd.events.DeliveryEvent;
+import com.fd.events.DeliveryStatus;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.repository.OrderRepository;
@@ -42,6 +43,10 @@ public class DeliveryEventConsumer {
     	            .orElseThrow(() ->
     	                    new RuntimeException("Order not found: " + event.getOrderId())
     	            );
+    	    if (order.getStatus() == OrderStatus.CANCELLED && event.getStatus() != DeliveryStatus.CANCELLED) {
+                log.info("Skipping delivery update {} because order {} is already CANCELLED", event.getStatus(), order.getId());
+                return;
+            }
 
     	    switch (event.getStatus()) {
 
@@ -70,8 +75,12 @@ public class DeliveryEventConsumer {
 
                     if (!wasDelivered && order.getUserEmail() != null && !order.getUserEmail().isBlank()) {
                         emailService.sendOrderDeliveredEmail(order.getUserEmail(), order);
-                    }
+                    }   
     	        }
+    	        case CANCELLED -> {
+                    order.setStatus(OrderStatus.CANCELLED);
+                    log.info("Order {} marked as CANCELLED", order.getId());
+                }
     	    }
 
     	    repository.save(order);

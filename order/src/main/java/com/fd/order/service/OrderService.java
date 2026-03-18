@@ -1,6 +1,7 @@
 package com.fd.order.service;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ public class OrderService {
     private final OrderEventProducer producer;
     private final OrderConfirmedEventProducer orderConfirmedProducer;
     private final EmailService emailService;
-
+    private static final EnumSet<OrderStatus> CANCELLABLE_STATUSES =EnumSet.of(OrderStatus.CREATED, OrderStatus.CONFIRMED, OrderStatus.PICKED_UP);
     public OrderService(OrderRepository repository,
                         OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer, EmailService emailService) {
         this.repository = repository;
@@ -108,5 +109,21 @@ public class OrderService {
 	public List<Order> getOrdersForUser(Long userId) {
 	    return repository.findByUserIdAndStatusNot(userId,OrderStatus.CANCELLED);
 	}
+	public Order cancelOrder(Long userId, Long orderId) {
+        Order order = repository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        if (!order.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("You can only cancel your own order");
+        }
+        if (!CANCELLABLE_STATUSES.contains(order.getStatus())) {
+            throw new IllegalStateException("Order cannot be cancelled once it is out for delivery/delivered");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        Order saved = repository.save(order);
+        producer.publishOrderCancelled(orderId);
+        log.info("Order {} cancelled by user {}", orderId, userId);
+        return saved;
+    }
 }

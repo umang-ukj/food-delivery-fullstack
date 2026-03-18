@@ -522,6 +522,20 @@ function placeOrder() {
 //created->pickeup->outfordelivery->delivered
 function renderDeliveryStatus(container, finalStatus) {
   if (!container || !finalStatus) return;
+  
+  if (finalStatus === "CANCELLED") {
+    const stepEls = Array.from(container.querySelectorAll(".step"));
+    stepEls.forEach(el => {
+      el.classList.remove("active");
+      el.style.opacity = "0.25";
+    });
+    const cancelledStep = container.querySelector('[data-step="CANCELLED"]');
+    if (cancelledStep) {
+      cancelledStep.classList.add("active");
+      cancelledStep.style.opacity = "1";
+    }
+    return;
+  }
 
   const steps = ["CONFIRMED", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"];
   const targetIndex = steps.indexOf(finalStatus);
@@ -638,6 +652,7 @@ function formatOrderTime(dateTimeString) {
 function renderOrderItem(order, index, list) {
   const li = document.createElement("li");
   li.style.cursor = "pointer;"
+  const canCancel = ["CREATED", "CONFIRMED", "PICKED_UP"].includes(order.status);
   li.innerHTML = `
     <div class="order-card">
       <div class="order-summary">
@@ -646,8 +661,10 @@ function renderOrderItem(order, index, list) {
           ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
           Status: ${order.status}<br/>
         </div>
-        <button class="reorder-btn" onclick="reorderOrderById('${order.id}', event)">Reorder</button>
-        
+        <div style="display:flex; gap:8px;">
+          ${canCancel ? `<button class="cancel-btn" onclick="cancelOrderById('${order.id}', event)">Cancel</button>` : ""}
+          <button class="reorder-btn" onclick="reorderOrderById('${order.id}', event)">Reorder</button>
+        </div>
       </div>
 
       <div class="delivery-status">
@@ -655,6 +672,7 @@ function renderOrderItem(order, index, list) {
         <span class="step" data-step="PICKED_UP">Picked Up</span>
         <span class="step" data-step="OUT_FOR_DELIVERY">Out for Delivery</span>
         <span class="step" data-step="DELIVERED">Delivered</span>
+        <span class="step" data-step="CANCELLED">Cancelled</span>
       </div>
 
       <div class="order-details" style="display:none">
@@ -669,6 +687,37 @@ function renderOrderItem(order, index, list) {
   renderDeliveryStatus(statusContainer, order.status);
 
   list.appendChild(li);
+}
+
+function cancelOrderById(orderId, event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  if (!orderId) return;
+  if (!confirm("Cancel this order?")) return;
+
+  const token = localStorage.getItem("jwt");
+  fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  })
+  .then(async res => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed with status ${res.status}`);
+      }
+      return res.json();
+    })
+    .then(() => {
+      alert("Order cancelled");
+      loadOrders();
+    })
+    .catch(err => {
+      console.error("Cancel order failed", err);
+      alert("Unable to cancel order at this stage.");
+    });
 }
 
 function toggleOrderDetails(orderId, orderElement) {

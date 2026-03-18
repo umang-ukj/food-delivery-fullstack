@@ -33,7 +33,7 @@ public class EmailService {
                 //+ "Restaurant ID: " + order.getRestaurantId() + "\n"
                 //+ "Total Amount: " + order.getTotalAmount() + "\n"
                 + "Restaurant: " + valueOrNA(order.getRestaurantName()) + "\n"
-                + "Restaurant Image: " + valueOrNA(order.getRestaurantImageUrl()) + "\n"
+                //+ "Restaurant Image: " + valueOrNA(order.getRestaurantImageUrl()) + "\n"
                 + buildPriceBreakdown(order)
                 + "Ordered Time: " + formatTime(order.getOrderedAt()) + "\n"
                 + "Current Status: " + order.getStatus();
@@ -47,7 +47,7 @@ public class EmailService {
                 + "Order ID: " + order.getId() + "\n"
                 //+ "Total Amount: " + order.getTotalAmount() + "\n"
                 + "Restaurant: " + valueOrNA(order.getRestaurantName()) + "\n"
-                + "Restaurant Image: " + valueOrNA(order.getRestaurantImageUrl()) + "\n"
+                //+ "Restaurant Image: " + valueOrNA(order.getRestaurantImageUrl()) + "\n"
                 + buildPriceBreakdown(order)
                 + "Ordered Time: " + formatTime(order.getOrderedAt()) + "\n"
                 + "Delivered Time: " + formatTime(order.getDeliveredAt()) + "\n"

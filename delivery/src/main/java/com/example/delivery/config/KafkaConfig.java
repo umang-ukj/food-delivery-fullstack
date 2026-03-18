@@ -13,6 +13,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
+import com.fd.events.OrderCancelledEvent;
 import com.fd.events.OrderConfirmedEvent;
 
 @Configuration
@@ -50,5 +51,29 @@ public class KafkaConfig {
 	    factory.setConsumerFactory(orderConfirmedConsumerFactory());
 	    return factory;
 	}
+	
+	@Bean
+    public ConsumerFactory<String, OrderCancelledEvent> orderCancelledConsumerFactory() {
+        JsonDeserializer<OrderCancelledEvent> deserializer =
+                new JsonDeserializer<>(OrderCancelledEvent.class);
 
+        deserializer.addTrustedPackages("*");
+        deserializer.setUseTypeHeaders(false);
+
+        return new DefaultKafkaConsumerFactory<>(
+                consumerConfigs(),
+                new StringDeserializer(),
+                deserializer
+        );
+    }
+	
+	@Bean
+    public ConcurrentKafkaListenerContainerFactory<String, OrderCancelledEvent>
+    orderCancelledKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, OrderCancelledEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+
+        factory.setConsumerFactory(orderCancelledConsumerFactory());
+        return factory;
+    }
 }

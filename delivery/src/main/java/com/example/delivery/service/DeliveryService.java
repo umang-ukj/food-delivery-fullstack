@@ -74,5 +74,17 @@ public class DeliveryService {
 
         publishStatus(orderId, status);
     }
-
+    
+    @Transactional
+    public void cancelDelivery(Long orderId) {
+        deliveryRepository.findFirstByOrderId(orderId).ifPresent(delivery -> {
+            if (delivery.getStatus() == DeliveryStatus.DELIVERED
+                    || delivery.getStatus() == DeliveryStatus.CANCELLED) {
+                return;
+            }
+            delivery.setStatus(DeliveryStatus.CANCELLED);
+            deliveryRepository.save(delivery);
+            publishStatus(orderId, DeliveryStatus.CANCELLED);
+        });
+    }
 }
