@@ -2,7 +2,9 @@ package com.example.delivery.consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import com.example.delivery.producer.DeliveryEventProducer;
@@ -24,37 +26,32 @@ public class OrderConfirmedEventConsumer {
 		this.service=service;
 	}
 	
-	public OrderConfirmedEventConsumer(DeliveryService service) {
-		this.service=service;
-	}
-	/*
-	 * @KafkaListener(topics = "order-confirmed-events", containerFactory =
-	 * "orderConfirmedKafkaListenerContainerFactory") public void
-	 * handleOrderConfirmed(OrderConfirmedEvent event) {
-	 * log.info("Received ORDER_CONFIRMED event for orderId={}",
-	 * event.getOrderId());
-	 * 
-	 * 
-	 * deliveryEventProducer.sendDeliveryUpdate( event.getOrderId(),
-	 * DeliveryStatus.OUT_FOR_DELIVERY );
-	 * 
-	 * deliveryEventProducer.sendDeliveryUpdate( event.getOrderId(),
-	 * DeliveryStatus.DELIVERED );
-	 * 
-	 * }
-	 */
 	@KafkaListener(topics = "order-confirmed-events",containerFactory ="orderConfirmedKafkaListenerContainerFactory")
-	public void handlePaymentEvent(OrderConfirmedEvent event) {
+	public void handlePaymentEvent(OrderConfirmedEvent event,@Header(name = "X-Trace-Id", required = false) String traceId) {
+		if (traceId != null && !traceId.isBlank()) {
+			MDC.put("traceId", traceId);
+		}
+		try {
 
-		log.info("Payment confirmed. Starting delivery for orderId={}", event.getOrderId());
+			log.info("Payment confirmed. Starting delivery for orderId={}", event.getOrderId());
 
-		service.createDelivery(event.getOrderId());
+			service.createDelivery(event.getOrderId());
+		} finally {
+			MDC.remove("traceId");
+		}
 	}
     
 	@KafkaListener(topics = "order-events", containerFactory = "orderCancelledKafkaListenerContainerFactory")
-    public void handleOrderCancelled(OrderCancelledEvent event) {
+    public void handleOrderCancelled(OrderCancelledEvent event, @Header(name = "X-Trace-Id", required = false) String traceId) {
+		if (traceId != null && !traceId.isBlank()) {
+            MDC.put("traceId", traceId);
+        }
+        try {
         log.info("Received ORDER_CANCELLED event for orderId={}", event.getOrderId());
         service.cancelDelivery(event.getOrderId());
+        } finally {
+            MDC.remove("traceId");
+        }
     }
 }
 

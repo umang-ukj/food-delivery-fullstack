@@ -83,7 +83,7 @@ public class KafkaConfig {
 
         factory.setConsumerFactory(paymentConsumerFactory);
         factory.setCommonErrorHandler(kafkaErrorHandler);
-
+        factory.getContainerProperties().setObservationEnabled(true);
         return factory;
     }
 
@@ -124,7 +124,7 @@ public class KafkaConfig {
 
         factory.setConsumerFactory(deliveryConsumerFactory);
         factory.setCommonErrorHandler(kafkaErrorHandler);
-
+        factory.getContainerProperties().setObservationEnabled(true);
         return factory;
     }
 }

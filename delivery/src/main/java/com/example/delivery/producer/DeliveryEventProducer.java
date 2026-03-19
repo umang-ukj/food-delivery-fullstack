@@ -4,7 +4,10 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import com.example.delivery.model.Delivery;
@@ -44,7 +47,14 @@ public class DeliveryEventProducer {
 	 * }
 	 */
     public void publish(DeliveryEvent event) {
-    	log.info("Publishing DELIVERY event {} for orderId={}",
-                event.getStatus(), event.getOrderId());
+    	log.info("Publishing DELIVERY event {} for orderId={}",event.getStatus(), event.getOrderId());
+    	String traceId = MDC.get("traceId");
+        if (traceId != null && !traceId.isBlank()) {
+            kafkaTemplate.send(MessageBuilder.withPayload(event)
+                    .setHeader(KafkaHeaders.TOPIC, "delivery-events")
+                    .setHeader("X-Trace-Id", traceId)
+                    .build());
+            return;
+        }
         kafkaTemplate.send("delivery-events", event);
     }}

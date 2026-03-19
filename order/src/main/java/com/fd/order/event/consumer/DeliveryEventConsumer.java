@@ -5,8 +5,9 @@ import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-
+import org.slf4j.MDC;
 import com.fd.events.DeliveryEvent;
 import com.fd.events.DeliveryStatus;
 import com.fd.order.entity.Order;
@@ -27,17 +28,18 @@ public class DeliveryEventConsumer {
         this.emailService=emailService;
     }
 
-    @KafkaListener(
-    	    topics = "delivery-events",
-    	    containerFactory = "deliveryKafkaListenerContainerFactory"
-    	)
-    	public void handleDeliveryEvent(DeliveryEvent event) {
+    @KafkaListener(topics = "delivery-events",containerFactory = "deliveryKafkaListenerContainerFactory")
+    	public void handleDeliveryEvent(DeliveryEvent event, @Header(name = "X-Trace-Id", required = false) String traceId) {
 
-    	    log.info(
-    	        "Received DELIVERY_{} event for orderId={}",
-    	        event.getStatus(),
-    	        event.getOrderId()
-    	    );
+    	if (traceId != null && !traceId.isBlank()) {
+            MDC.put("traceId", traceId);
+        }
+        try {
+        log.info(
+	        "Received DELIVERY_{} event for orderId={}",
+	        event.getStatus(),
+	        event.getOrderId()
+	    );
 
     	    Order order = repository.findById(event.getOrderId())
     	            .orElseThrow(() ->
@@ -84,7 +86,9 @@ public class DeliveryEventConsumer {
     	    }
 
     	    repository.save(order);
-    	}
+    	}finally {
+            MDC.remove("traceId");
+        }
 
-}
+}}
 

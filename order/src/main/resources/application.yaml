@@ -32,6 +32,10 @@ spring:
             enable: true
   kafka:
     bootstrap-servers: localhost:9092
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

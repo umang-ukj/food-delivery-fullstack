@@ -2,7 +2,10 @@ package com.fd.order.event.producer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import com.fd.events.OrderCancelledEvent;
@@ -27,13 +30,29 @@ public class OrderEventProducer {
                 paymentMethod
         );
         log.info("Publishing ORDER_CREATED event for orderId={}, paymentMethod={}",order.getId(), paymentMethod);
-
+        String traceId = MDC.get("traceId");
+        if (traceId != null && !traceId.isBlank()) {
+            kafkaTemplate.send(MessageBuilder.withPayload(event)
+                    .setHeader(KafkaHeaders.TOPIC, "order-events")
+                    .setHeader("X-Trace-Id", traceId)
+                    .build());
+            return;
+        }
         kafkaTemplate.send("order-events", event);
     }
 	public void publishOrderCancelled(Long orderId) {
 		
 	    log.info("Publishing ORDER_CANCELLED event for orderId={}", orderId);
-	    kafkaTemplate.send("order-events",new OrderCancelledEvent(orderId));
+	    OrderCancelledEvent event = new OrderCancelledEvent(orderId);
+        String traceId = MDC.get("traceId");
+        if (traceId != null && !traceId.isBlank()) {
+            kafkaTemplate.send(MessageBuilder.withPayload(event)
+                    .setHeader(KafkaHeaders.TOPIC, "order-events")
+                    .setHeader("X-Trace-Id", traceId)
+                    .build());
+            return;
+        }
+	    kafkaTemplate.send("order-events", event);
 	}
 
 }

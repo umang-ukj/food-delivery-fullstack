@@ -32,9 +32,9 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, DeliveryEvent> deliveryKafkaTemplate(
-            ProducerFactory<String, DeliveryEvent> deliveryProducerFactory) {
-
-        return new KafkaTemplate<>(deliveryProducerFactory);
+    public KafkaTemplate<String, DeliveryEvent> deliveryKafkaTemplate(ProducerFactory<String, DeliveryEvent> deliveryProducerFactory) {
+    	KafkaTemplate<String, DeliveryEvent> kafkaTemplate =new KafkaTemplate<>(deliveryProducerFactory);
+        kafkaTemplate.setObservationEnabled(true);
+        return kafkaTemplate;
     }
 }

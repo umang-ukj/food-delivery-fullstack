@@ -49,6 +49,7 @@ public class KafkaConfig {
 	            new ConcurrentKafkaListenerContainerFactory<>();
 
 	    factory.setConsumerFactory(orderConfirmedConsumerFactory());
+	    factory.getContainerProperties().setObservationEnabled(true);
 	    return factory;
 	}
 	
@@ -74,6 +75,7 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(orderCancelledConsumerFactory());
+        factory.getContainerProperties().setObservationEnabled(true);
         return factory;
     }
 }

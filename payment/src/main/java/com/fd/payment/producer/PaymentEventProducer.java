@@ -2,7 +2,10 @@ package com.fd.payment.producer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import com.fd.events.PaymentEvent;
@@ -35,6 +38,14 @@ public class PaymentEventProducer {
     public void publish(Payment payment) {
     	PaymentEvent event = new PaymentEvent(payment.getOrderId(),payment.getStatus(),payment.getPaymentMethod());
     	log.info("Publishing PAYMENT_{} event for orderId={}",event.getOrderId());
+    	String traceId = MDC.get("traceId");
+        if (traceId != null && !traceId.isBlank()) {
+            kafkaTemplate.send(MessageBuilder.withPayload(event)
+                    .setHeader(KafkaHeaders.TOPIC, "payment-events")
+                    .setHeader("X-Trace-Id", traceId)
+                    .build());
+            return;
+        }
         kafkaTemplate.send("payment-events", event);
     }
 }

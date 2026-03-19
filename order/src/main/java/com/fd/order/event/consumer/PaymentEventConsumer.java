@@ -2,8 +2,10 @@ package com.fd.order.event.consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import com.fd.events.OrderConfirmedEvent;
@@ -73,8 +75,11 @@ public class PaymentEventConsumer {
 	 */
 	@Transactional
 	@KafkaListener(topics = "payment-events", containerFactory = "paymentKafkaListenerContainerFactory")
-	public void handlePaymentEvent(PaymentEvent event) {
-		
+	public void handlePaymentEvent(PaymentEvent event,@Header(name = "X-Trace-Id", required = false) String traceId) {
+		if (traceId != null && !traceId.isBlank()) {
+            MDC.put("traceId", traceId);
+        }
+        try {
 		// ONLINE PAYMENT FAILED → CANCEL ORDER
 	    if (event.getMethod() != PaymentMethod.CASH &&
 	        event.getStatus() == PaymentStatus.PAYMENT_FAILED) {
@@ -105,6 +110,9 @@ public class PaymentEventConsumer {
 		orderConfirmedEventProducer.publish(new OrderConfirmedEvent(event.getOrderId()));
 
 		log.info("Order {} confirmed and OrderConfirmedEvent published", event.getOrderId());
+        } finally {
+            MDC.remove("traceId");
+        }
 	}
 
 }
