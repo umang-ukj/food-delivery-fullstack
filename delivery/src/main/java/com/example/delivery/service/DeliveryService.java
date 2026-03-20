@@ -2,6 +2,7 @@ package com.example.delivery.service;
 
 import java.util.Optional;
 
+import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -44,9 +45,9 @@ public class DeliveryService {
 
         deliveryRepository.save(delivery);
 
-        // 3️ Publish CREATED
+        //Publish CREATED
         publishStatus(orderId, DeliveryStatus.CREATED);
-        asyncService.runDeliveryFlow(orderId);
+        asyncService.runDeliveryFlow(orderId, MDC.get("traceId"));
     }
     
     

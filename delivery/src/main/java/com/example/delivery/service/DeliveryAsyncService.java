@@ -1,5 +1,8 @@
 package com.example.delivery.service;
 
+import java.util.Map;
+
+import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +23,13 @@ public class DeliveryAsyncService {
     }
 
     @Async
-    public void runDeliveryFlow(Long orderId) {
+    public void runDeliveryFlow(Long orderId, String traceId) {
+        Map<String, String> previousContext = MDC.getCopyOfContextMap();
+        if (traceId != null && !traceId.isBlank()) {
+            MDC.put("traceId", traceId);
+        } else {
+            MDC.remove("traceId");
+        }
         try {
         	Thread.sleep(3000);
             if (isCancelled(orderId)) return;
@@ -35,7 +44,12 @@ public class DeliveryAsyncService {
             deliveryProducer.publish(new DeliveryEvent(orderId, DeliveryStatus.DELIVERED));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
+        }finally {
+            if (previousContext != null) {
+                MDC.setContextMap(previousContext);
+            } else {
+                MDC.clear();
+            }}
     }
     
     private boolean isCancelled(Long orderId) {
