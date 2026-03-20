@@ -1,44 +1,50 @@
-<div id="navbar"></div>
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
-      renderNavbar();
-    });
-</script>
+<!DOCTYPE html>
+<html>
 
-<h2>Admin Dashboard</h2>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="common.css" />
+</head>
 
-<!-- ACTION BUTTONS -->
-<div style="margin-bottom:20px">
-  <button onclick="showAddRestaurant()">Add Restaurant</button>
-  <button onclick="showAddMenu()">Add Menu</button>
-</div>
+<body>
+  <div id="navbar"></div>
 
-<!-- DYNAMIC FORM AREA -->
-<div id="content" style="margin-bottom:30px"></div>
+  <div class="page-container admin-page">
+    <h2 class="page-title">Admin Dashboard</h2>
+    <p class="page-subtitle">Manage restaurants, menus, availability and images from one place.</p>
 
-<hr>
+    <div class="admin-actions">
+      <button class="primary-btn admin-action-btn" onclick="showAddRestaurant()">Add Restaurant</button>
+      <button class="primary-btn admin-action-btn" onclick="showAddMenu()">Add Menu Item</button>
+    </div>
 
-<div style="display:flex; gap:30px">
+    <div id="content" class="admin-form-host"></div>
 
-  <!-- LEFT: Restaurant list -->
-  <div style="width:30%">
-    <h3>Restaurants</h3>
-    <ul id="restaurantList"></ul>
+    <div class="admin-layout">
+      <section class="admin-panel">
+        <h3>Restaurants</h3>
+        <ul id="restaurantList" class="admin-list"></ul>
+      </section>
+
+      <section class="admin-panel">
+        <h3 id="selectedRestaurantTitle">Select a restaurant</h3>
+        <ul id="menuList" class="admin-list admin-menu-list"></ul>
+      </section>
+    </div>
   </div>
+  <script src="navbar.js"></script>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+        renderNavbar();
+      });
+  </script>
+  <script src="admin.js"></script>
+  <script>
+    loadRestaurants();
+  </script>
+</body>
 
-  <!-- RIGHT: Menu management -->
-  <div style="width:70%">
-    <h3 id="selectedRestaurantTitle">Select a restaurant</h3>
-    <ul id="menuList"></ul>
-  </div>
-
-</div>
-
-<script src="navbar.js"></script>
-<script src="admin.js"></script>
-<script>
-  loadRestaurants();
-</script>
+</html>

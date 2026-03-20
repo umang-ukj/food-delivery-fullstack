@@ -14,6 +14,7 @@
 
   <section class="landing-hero">
     <h1>Order food from your favorite restaurants</h1>
+    <p class="landing-subtitle">Discover trending kitchens, comfort food, and quick bites near you.</p>
     <div class="landing-search-row">
       <input
         id="landingLocationInput"
@@ -22,6 +23,11 @@
         onkeydown="if (event.key === 'Enter') searchLandingByLocation()"
       />
       <button class="primary-btn" onclick="searchLandingByLocation()">Find food</button>
+    </div>
+    <div class="landing-chip-row">
+      <span class="landing-chip">Fast delivery</span>
+      <span class="landing-chip">Fresh menus</span>
+      <span class="landing-chip">Top-rated restaurants</span>
     </div>
   </section>
 </div>

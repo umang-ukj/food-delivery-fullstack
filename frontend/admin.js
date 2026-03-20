@@ -25,14 +25,24 @@ function authHeaders() {
 
 function showAddRestaurant() {
   document.getElementById("content").innerHTML = `
-    <h3>Add Restaurant</h3>
-    <input id="rname" placeholder="Restaurant Name"><br><br>
-    <input id="loc" placeholder="Location"><br><br>
-    <input type="file" id="restaurantImage" accept="image/*">
-    <label>
-      <input type="checkbox" id="open" checked> Open
-    </label><br><br>
-    <button onclick="addRestaurant()">Save</button>
+    <div class="admin-form-card">
+      <h3>Add Restaurant</h3>
+      <div class="admin-form-grid">
+        <label>Restaurant name
+          <input id="rname" class="admin-input" placeholder="Restaurant Name">
+        </label>
+        <label>Location
+          <input id="loc" class="admin-input" placeholder="Location">
+        </label>
+        <label>Restaurant image
+          <input type="file" id="restaurantImage" class="admin-file-input" accept="image/*">
+        </label>
+      </div>
+      <label class="admin-check">
+        <input type="checkbox" id="open" checked> Open
+      </label>
+      <button class="primary-btn admin-action-btn" onclick="addRestaurant()">Save Restaurant</button>
+    </div>
   `;
 }
 
@@ -100,20 +110,29 @@ function showAddMenu() {
   }
 
   document.getElementById("content").innerHTML = `
-    <h3>Add Menu Item</h3>
-
-    <input id="menuName" placeholder="Item Name"><br><br>
-    <input id="menuPrice" placeholder="Price"><br><br>
-    <input type="file" id="menuImage" accept="image/*">
-
-    <label>
-      <input type="checkbox" id="available" checked> Available
-    </label><br><br>
-    <label>
-      <input type="checkbox" id="isVeg"> Veg
-    </label><br><br>
-
-    <button onclick="addMenuItem()">Save</button>
+    <div class="admin-form-card">
+      <h3>Add Menu Item</h3>
+      <div class="admin-form-grid">
+        <label>Item name
+          <input id="menuName" class="admin-input" placeholder="Item Name">
+        </label>
+        <label>Price
+          <input id="menuPrice" class="admin-input" type="number" min="1" placeholder="Price">
+        </label>
+        <label>Item image
+          <input type="file" id="menuImage" class="admin-file-input" accept="image/*">
+        </label>
+      </div>
+      <div class="admin-check-row">
+        <label class="admin-check">
+          <input type="checkbox" id="available" checked> Available
+        </label>
+        <label class="admin-check">
+          <input type="checkbox" id="isVeg"> Veg
+        </label>
+      </div>
+      <button class="primary-btn admin-action-btn" onclick="addMenuItem()">Save Menu Item</button>
+    </div>
   `;
 }
 
@@ -199,24 +218,26 @@ function loadRestaurants() {
 
       restaurants.forEach(r => {
         const li = document.createElement("li");
+        li.className = "admin-restaurant-item";
         const isOpen = r.open !== false;
         li.innerHTML = `
-    <div style="display:flex; gap:12px; align-items:center;">
+    <div class="admin-restaurant-card">
       <img 
         src="${r.imageUrl
             ? `http://localhost:8082${r.imageUrl}`
             : '/images/default-restaurant.png'
           }"
-        style="width:90px;height:65px;object-fit:cover;border-radius:6px;"
+        class="admin-thumb"
       />
-      <div>
+      <div class="admin-item-main">>
         <strong>${r.name}</strong><br/>
         <small>${r.location}</small><br/>
-        <small style="color:${isOpen ? "#2e7d32" : "#c62828"}">
+        <small class="${isOpen ? "admin-status-open" : "admin-status-closed"}">
           ${isOpen ? "Open" : "Closed"}
         </small>
       </div>
-      <button onclick="showEditRestaurant(
+      <div class="admin-inline-actions">
+      <button class="admin-mini-btn" onclick="event.stopPropagation(); showEditRestaurant(
   '${r.id}',
   '${r.name}',
   '${r.location}',
@@ -224,12 +245,10 @@ function loadRestaurants() {
   ${isOpen}
 )">Edit</button>
 
-<button 
-  style="background:#d9534f;color:white;border:none;padding:6px 10px;"
-  onclick="deleteRestaurant('${r.id}')">
+<button class="admin-mini-btn admin-danger-btn" onclick="event.stopPropagation(); deleteRestaurant('${r.id}')">
   Delete
 </button>
-
+</div>
     </div>
   `;
         li.style.cursor = "pointer";
@@ -240,18 +259,26 @@ function loadRestaurants() {
 }
 function showEditRestaurant(id, name, location, imageUrl, isOpen) {
   document.getElementById("content").innerHTML = `
-    <h3>Edit Restaurant</h3>
-
-    <input id="editRName" value="${name}" /><br><br>
-    <input id="editLoc" value="${location}" /><br><br>
-    <label>
-      <input type="checkbox" id="editOpen" ${isOpen ? "checked" : ""}> Open
-    </label><br><br>
-    <input type="file" id="editRestaurantImage" accept="image/*"><br><br>
-
-    <button onclick="updateRestaurant('${id}', '${imageUrl || ""}')">
-      Update
-    </button>
+<div class="admin-form-card">
+      <h3>Edit Restaurant</h3>
+      <div class="admin-form-grid">
+        <label>Restaurant name
+          <input id="editRName" class="admin-input" value="${name}" />
+        </label>
+        <label>Location
+          <input id="editLoc" class="admin-input" value="${location}" />
+        </label>
+        <label>Restaurant image
+          <input type="file" id="editRestaurantImage" class="admin-file-input" accept="image/*">
+        </label>
+      </div>
+      <label class="admin-check">
+        <input type="checkbox" id="editOpen" ${isOpen ? "checked" : ""}> Open
+      </label>
+      <button class="primary-btn admin-action-btn" onclick="updateRestaurant('${id}', '${imageUrl || ""}')">
+        Update Restaurant
+      </button>
+    </div>
   `;
 }
 async function updateRestaurant(id, oldImageUrl) {
@@ -358,59 +385,53 @@ function selectRestaurant(restaurantId) {
       r.menu.forEach(item => {
         const li = document.createElement("li");
 
-        li.style.display = "flex";
-        li.style.alignItems = "center";
-        li.style.gap = "12px";
+        li.className = "admin-menu-item";
         const isAvailable = item.available !== false;
         const isVeg = item.isVeg === true;
         li.innerHTML = `
     <img
       src="${item.imageUrl || '/images/default-food.png'}"
-      style="
-        width:70px;
-        height:55px;
-        object-fit:cover;
-        border-radius:6px;
-        border:1px solid #ccc;
-      "
+      class="admin-thumb admin-thumb-sm"
     />
 
-    <div style="flex:1">
+    <div class="admin-item-main">
   <input 
+  class="admin-input"
     value="${item.name}"
     onchange="updateMenuItem(
       '${item.itemId}',
       { name: this.value }
     )"
   />
-  <div style="font-size:12px;color:#555;margin-top:4px;">
+  <div class="admin-item-meta">
     ${isVeg ? "Veg" : "Non-veg"} · ${isAvailable ? "Available" : "Out of stock"}
   </div>
 </div>
 
-<button onclick="showEditMenuImage('${item.itemId}')">Edit</button>
+<button class="admin-mini-btn" onclick="showEditMenuImage('${item.itemId}')">Edit</button>
 
     <input 
       type="number"
+      class="admin-input admin-price-input"
       value="${item.price}"
       style="width:70px"
       onchange="updateMenuItem('${item.itemId}', { price: Number(this.value) })"
     />
-    <label style="font-size:12px;">
+    <label class="admin-check">
       <input
         type="checkbox"
         ${isAvailable ? "checked" : ""}
         onchange="updateMenuItem('${item.itemId}', { available: this.checked })"
       /> Available
     </label>
-    <label style="font-size:12px;">
+    <label class="admin-check">
       <input
         type="checkbox"
         ${isVeg ? "checked" : ""}
         onchange="updateMenuItem('${item.itemId}', { isVeg: this.checked })"
       /> Veg
     </label>
-    <button onclick="deleteMenuItem('${item.itemId}')">Delete</button>
+    <button class="admin-mini-btn admin-danger-btn" onclick="deleteMenuItem('${item.itemId}')">Delete</button>
   `;
 
         menuUl.appendChild(li);
@@ -420,9 +441,13 @@ function selectRestaurant(restaurantId) {
 }
 function showEditMenuImage(menuId) {
   document.getElementById("content").innerHTML = `
-    <h3>Update Menu Image</h3>
-    <input type="file" id="editMenuImage" accept="image/*"><br><br>
-    <button onclick="updateMenuImage('${menuId}')">Update</button>
+    <div class="admin-form-card">
+      <h3>Update Menu Image</h3>
+      <label>Upload new image
+        <input type="file" id="editMenuImage" class="admin-file-input" accept="image/*">
+      </label>
+      <button class="primary-btn admin-action-btn" onclick="updateMenuImage('${menuId}')">Update Image</button>
+    </div>
   `;
 }
 
