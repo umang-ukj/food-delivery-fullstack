@@ -522,7 +522,7 @@ function placeOrder() {
 //created->pickeup->outfordelivery->delivered
 function renderDeliveryStatus(container, finalStatus) {
   if (!container || !finalStatus) return;
-  
+
   if (finalStatus === "CANCELLED") {
     const stepEls = Array.from(container.querySelectorAll(".step"));
     stepEls.forEach(el => {
@@ -566,6 +566,8 @@ function renderDeliveryStatus(container, finalStatus) {
 let ordersCache = [];
 const ORDERS_PER_PAGE = 5;
 let currentOrdersPage = 1;
+let ordersAutoRefreshInterval = null;
+let lastOrdersSignature = "";
 
 function loadOrders() {
   if (!localStorage.getItem("jwt")) {
@@ -597,7 +599,83 @@ function loadOrders() {
       ordersCache = [...orders].reverse();
       currentOrdersPage = 1;
       renderOrdersPage(currentOrdersPage);
+      const orderIdFromQuery = new URLSearchParams(window.location.search).get("orderId");
+      autoRefreshOrderId = orderIdFromQuery || ordersCache[0]?.id || null;
+      startOrdersAutoRefresh();
     });
+}
+
+function startOrdersAutoRefresh() {
+  if (ordersAutoRefreshInterval || !document.getElementById("orders") || !autoRefreshOrderId) return;
+
+  ordersAutoRefreshInterval = setInterval(() => {
+    if (document.visibilityState === "hidden") return;
+
+    fetch(`${API_BASE}/orders/${autoRefreshOrderId}`, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+      }
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to refresh orders (${res.status})`);
+        }
+        return res.json();
+      })
+      .then(order => {
+        if (!order || !order.id) return;
+
+        const existingIndex = ordersCache.findIndex(existing => existing.id === order.id);
+        if (existingIndex === -1) return;
+
+        const prevOrder = ordersCache[existingIndex];
+        if (
+          prevOrder.status === order.status &&
+          prevOrder.deliveredAt === order.deliveredAt &&
+          prevOrder.updatedAt === order.updatedAt
+        ) {
+          return;
+        }
+
+        ordersCache[existingIndex] = {
+          ...ordersCache[existingIndex],
+          ...order
+        };
+        updateOrderCardInView(existingIndex, ordersCache[existingIndex]);
+
+        const isTerminal = ["DELIVERED", "CANCELLED", "FAILED"].includes(order.status);
+        if (isTerminal) {
+          clearInterval(ordersAutoRefreshInterval);
+          ordersAutoRefreshInterval = null;
+        }
+      })
+      .catch(err => {
+        console.warn("Orders auto-refresh failed:", err.message);
+      });
+  }, 3000);
+}
+
+window.addEventListener("beforeunload", () => {
+  if (ordersAutoRefreshInterval) {
+    clearInterval(ordersAutoRefreshInterval);
+    ordersAutoRefreshInterval = null;
+  }
+});
+
+function updateOrderCardInView(orderIndex, order) {
+  const start = (currentOrdersPage - 1) * ORDERS_PER_PAGE;
+  const end = start + ORDERS_PER_PAGE;
+  if (orderIndex < start || orderIndex >= end) return;
+
+  const displayIndex = orderIndex - start;
+  const list = document.getElementById("orders");
+  if (!list) return;
+
+  const existingLi = list.querySelector(`li[data-order-id="${order.id}"]`);
+  if (!existingLi) return;
+
+  const replacementLi = createOrderListItem(order, start + displayIndex);
+  list.replaceChild(replacementLi, existingLi);
 }
 
 function renderOrdersPage(page) {
@@ -650,7 +728,12 @@ function formatOrderTime(dateTimeString) {
 }
 
 function renderOrderItem(order, index, list) {
+  list.appendChild(createOrderListItem(order, index));
+}
+
+function createOrderListItem(order, index) {
   const li = document.createElement("li");
+  li.dataset.orderId = order.id;
   li.style.cursor = "pointer;"
   const canCancel = ["CREATED", "CONFIRMED", "PICKED_UP"].includes(order.status);
   li.innerHTML = `
@@ -659,7 +742,7 @@ function renderOrderItem(order, index, list) {
         <div>
           <strong>Order #${index + 1}</strong>
           ${index === 0 ? `<span class="latest-tag">Latest Order</span>` : ""}<br/>
-          Status: ${order.status}<br/>
+          Status: <span class="order-current-status">${order.status}</span><br/>
         </div>
         <div style="display:flex; gap:8px;">
           ${canCancel ? `<button class="cancel-btn" onclick="cancelOrderById('${order.id}', event)">Cancel</button>` : ""}
@@ -686,7 +769,7 @@ function renderOrderItem(order, index, list) {
   const statusContainer = li.querySelector(".delivery-status");
   renderDeliveryStatus(statusContainer, order.status);
 
-  list.appendChild(li);
+  return li;
 }
 
 function cancelOrderById(orderId, event) {
@@ -703,7 +786,7 @@ function cancelOrderById(orderId, event) {
       "Authorization": `Bearer ${token}`
     }
   })
-  .then(async res => {
+    .then(async res => {
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || `Failed with status ${res.status}`);
@@ -827,7 +910,7 @@ function reorderOrderById(orderId, event) {
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`
     }
   })
-  .then(res => {
+    .then(res => {
       if (!res.ok) {
         throw new Error(`Failed to load order (${res.status})`);
       }
@@ -1117,19 +1200,14 @@ function searchLandingByLocation() {
 
   requestRestaurantsByLocation(location, { requireAuth: false })
     .then(restaurants => {
-      const resultsSection = document.getElementById("landingResults");
-      const locationTag = document.getElementById("landingLocationTag");
-      const container = document.getElementById("landingRestaurants");
+
 
       if (!Array.isArray(restaurants) || restaurants.length === 0) {
-        if (resultsSection) resultsSection.style.display = "none";
+
         showServiceabilityPopup("We are not currently serving in your location.");
         return;
       }
-
-      if (resultsSection) resultsSection.style.display = "block";
-      if (locationTag) locationTag.textContent = location;
-      renderRestaurantCards(restaurants, container);
+      window.location.href = `restaurants.html?location=${encodeURIComponent(location)}`;
     })
     .catch((err) => {
       console.error("Landing location search failed:", err);
@@ -1251,8 +1329,23 @@ function loadLocations() {
         opt.textContent = loc;
         dropdown.appendChild(opt);
       });
+      const requestedLocation = new URLSearchParams(window.location.search).get("location");
+      if (requestedLocation && locations.includes(requestedLocation)) {
+        dropdown.value = requestedLocation;
+      }
     });
 }
+
+function applyInitialRestaurantLocationFilter() {
+  const locationFromQuery = new URLSearchParams(window.location.search).get("location");
+  if (!locationFromQuery) {
+    loadRestaurants();
+    return;
+  }
+
+  loadRestaurantsByLocation(locationFromQuery);
+}
+
 //location dropdown functionality
 function filterByLocation() {
   const location = document.getElementById("locationFilter").value;
