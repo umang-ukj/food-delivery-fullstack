@@ -30,8 +30,7 @@ public class PaymentService {
 
 	@Value("${razorpay.key.secret}")
     private String razorpaySecret;
-    private static final Logger log =
-            LoggerFactory.getLogger(PaymentService.class);
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
     private final RazorpayConfig razorpayConfig;
     private final PaymentEventProducer producer;
     private final PaymentRepository paymentRepository;
@@ -52,16 +51,14 @@ public class PaymentService {
 
         createPayment(request);
     }
-
+ 
     @Transactional
     public PaymentResponse createPayment(PaymentRequest request) {
 
-        log.info("Creating payment for orderId={}, method={}",
-                request.getOrderId(), request.getMethod());
+        log.info("Creating payment for orderId={}, method={}", request.getOrderId(), request.getMethod());
 
         // 🔁 Idempotency check
-        Optional<Payment> existing =
-                paymentRepository.findByOrderId(request.getOrderId());
+        Optional<Payment> existing =paymentRepository.findByOrderId(request.getOrderId());
 
         if (existing.isPresent()) {
             Payment payment = existing.get();
@@ -76,7 +73,7 @@ public class PaymentService {
      
         }
 
-        // 🆕 Create new payment
+        // Create new payment
         Payment payment = new Payment();
         payment.setOrderId(request.getOrderId());
         payment.setAmount(request.getAmount());
@@ -106,13 +103,56 @@ public class PaymentService {
         return new PaymentResponse(saved);
     }
 
+    @Transactional
+    public void processOrderCancellation(Long orderId) {
+        Optional<Payment> existing = paymentRepository.findByOrderId(orderId);
+        if (existing.isEmpty()) {
+            log.info("No payment found for cancelled orderId={}, skipping refund workflow", orderId);
+            return;
+        }
 
+        Payment payment = existing.get();
+
+        if (payment.getPaymentMethod() == PaymentMethod.CASH) {
+            log.info("Skipping refund for CASH orderId={}", orderId);
+            return;
+        }
+
+        if (payment.getStatus() == PaymentStatus.REFUND_SUCCESS
+                || payment.getStatus() == PaymentStatus.REFUND_INITIATED) {
+            log.info("Refund already handled for orderId={}, status={}", orderId, payment.getStatus());
+            return;
+        }
+
+        if (payment.getStatus() == PaymentStatus.PAYMENT_SUCCESS) {
+            payment.setStatus(PaymentStatus.REFUND_INITIATED);
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            producer.publish(payment);
+            log.info("Refund initiated for orderId={}", orderId);
+
+            // In this implementation refund is auto-completed after initiation.
+            payment.setStatus(PaymentStatus.REFUND_SUCCESS);
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            producer.publish(payment);
+            log.info("Refund successful for orderId={}", orderId);
+            return;
+        }
+
+        if (payment.getStatus() == PaymentStatus.PAYMENT_INITIATED
+                || payment.getStatus() == PaymentStatus.PAYMENT_PENDING
+                || payment.getStatus() == PaymentStatus.PAYMENT_CREATED) {
+            payment.setStatus(PaymentStatus.PAYMENT_FAILED);
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            producer.publish(payment);
+            log.info("Marked in-flight payment as failed for cancelled orderId={}", orderId);
+        }
+    }
     public PaymentResponse getPaymentByOrder(Long orderId) {
 
-        Payment payment = paymentRepository.findByOrderId(orderId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "No payment found for orderId=" + orderId));
+        Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(() ->new IllegalArgumentException("No payment found for orderId=" + orderId));
 
         return new PaymentResponse(payment);
     }

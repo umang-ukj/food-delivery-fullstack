@@ -3,6 +3,7 @@ package com.fd.order.service;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,22 +24,27 @@ import jakarta.transaction.Transactional;
 @Service
 @Transactional
 public class OrderService {
-	private static final Logger log =
-		    LoggerFactory.getLogger(OrderService.class);
+	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private final OrderRepository repository;
     private final OrderEventProducer producer;
     private final OrderConfirmedEventProducer orderConfirmedProducer;
     private final EmailService emailService;
     private static final EnumSet<OrderStatus> CANCELLABLE_STATUSES =EnumSet.of(OrderStatus.CREATED, OrderStatus.CONFIRMED, OrderStatus.PICKED_UP);
-    public OrderService(OrderRepository repository,
-                        OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer, EmailService emailService) {
+    public OrderService(OrderRepository repository,OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer, EmailService emailService) {
         this.repository = repository;
         this.producer = producer;
         this.orderConfirmedProducer=orderConfirmedProducer;
         this.emailService=emailService;
     }
 
-    public Order createOrder(Long userId,String userEmail, CreateOrderRequest request) {
+    public Order createOrder(Long userId, String userEmail, String idempotencyKey, CreateOrderRequest request) {
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            Optional<Order> existing = repository.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
+            if (existing.isPresent()) {
+                log.info("Returning existing order {} for user {} with idempotency key {}", existing.get().getId(), userId, idempotencyKey);
+                return existing.get();
+            }
+        }
 		/*
 		 * PaymentMethod paymentMethod =
 		 * PaymentMethod.valueOf(request.getPaymentMethod());
@@ -50,6 +56,7 @@ public class OrderService {
         order.setRestaurantImageUrl(request.getRestaurantImageUrl());
         order.setRestaurantId(request.getRestaurantId());
         order.setStatus(OrderStatus.CREATED);
+        order.setIdempotencyKey(idempotencyKey);
         order.setOrderedAt(LocalDateTime.now());
         order.setItems(new java.util.ArrayList<>());
         double total = 0;

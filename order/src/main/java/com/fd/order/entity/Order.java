@@ -16,13 +16,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "orders",uniqueConstraints = {@UniqueConstraint(name = "uk_orders_user_idem_key", columnNames = {"userId", "idempotencyKey"})})
 @Getter
 @Setter
 @AllArgsConstructor
@@ -40,6 +41,7 @@ public class Order {
     private String addressId;
     private String restaurantName;
     private String restaurantImageUrl;
+    private String idempotencyKey;
     private LocalDateTime orderedAt;
     private LocalDateTime deliveredAt;
     @Enumerated(EnumType.STRING)

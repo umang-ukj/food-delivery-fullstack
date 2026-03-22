@@ -22,7 +22,7 @@ public class OrderEventConsumer {
         this.paymentService = paymentService;
     }
     
-    @KafkaListener(topics = "order-events")
+    @KafkaListener(topics = "order-events", containerFactory = "orderEventKafkaListenerContainerFactory")
     public void handleOrderEvent(OrderEvent event,@Header(name = "X-Trace-Id", required = false) String traceId) {
         if (traceId != null && !traceId.isBlank()) {
             MDC.put("traceId", traceId);

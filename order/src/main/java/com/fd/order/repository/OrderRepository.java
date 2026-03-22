@@ -30,7 +30,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>{
       and o.status <> com.fd.order.entity.OrderStatus.CONFIRMED
     """)
     int confirmIfNotConfirmed(@Param("orderId") Long orderId);
- 
+    Optional<Order> findByUserIdAndIdempotencyKey(Long userId, String idempotencyKey);
     List<Order> findByUserIdAndStatusNot(Long userId, OrderStatus status);
 
     @Modifying

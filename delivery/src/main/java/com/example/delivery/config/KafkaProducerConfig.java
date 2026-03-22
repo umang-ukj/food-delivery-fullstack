@@ -37,4 +37,19 @@ public class KafkaProducerConfig {
         kafkaTemplate.setObservationEnabled(true);
         return kafkaTemplate;
     }
+    
+    @Bean
+    public ProducerFactory<Object, Object> deadLetterProducerFactory(KafkaProperties kafkaProperties) {
+        Map<String, Object> props = kafkaProperties.buildProducerProperties();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+
+    @Bean
+    public KafkaTemplate<Object, Object> deadLetterKafkaTemplate(ProducerFactory<Object, Object> deadLetterProducerFactory) {
+        KafkaTemplate<Object, Object> kafkaTemplate = new KafkaTemplate<>(deadLetterProducerFactory);
+        kafkaTemplate.setObservationEnabled(true);
+        return kafkaTemplate;
+    }
 }

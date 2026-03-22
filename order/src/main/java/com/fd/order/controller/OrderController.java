@@ -32,8 +32,8 @@ public class OrderController {
     }
 
     @PostMapping
-    public Order createOrder(
-            @RequestHeader("Authorization") String authHeader,
+    public Order createOrder(@RequestHeader("Authorization") String authHeader,
+    		@RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody CreateOrderRequest request) {
 
         String token = authHeader.substring(7);
@@ -47,7 +47,7 @@ public class OrderController {
         }
 
         //return orderService.createOrder(userId, request);
-        return orderService.createOrder(userId, userEmail, request);
+        return orderService.createOrder(userId, userEmail,idempotencyKey, request);
     }
 
     @GetMapping("/{orderId}")
