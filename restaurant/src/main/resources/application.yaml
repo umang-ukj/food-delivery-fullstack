@@ -10,6 +10,10 @@ spring:
   redis:
     host: redis
     port: 6379
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
     
   web:
     resources:
