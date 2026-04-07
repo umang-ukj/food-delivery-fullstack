@@ -1826,8 +1826,6 @@ function renderSuggestions(results) {
         : ""
       }
 `;
-
-
     div.onclick = () => {
       document.getElementById("searchInput").value = r.restaurantName;
       box.innerHTML = "";
@@ -1840,24 +1838,41 @@ function renderSuggestions(results) {
 
 function openComplaintDialog(orderId, event) {
   if (event) event.stopPropagation();
+  const modal = document.getElementById("complaintModal");
+  const orderInput = document.getElementById("complaintOrderId");
+  const subjectInput = document.getElementById("complaintSubject");
+  const descriptionInput = document.getElementById("complaintDescription");
 
-  const subject = prompt("Complaint subject (example: Late delivery)");
-  if (!subject || !subject.trim()) return;
-
-  const description = prompt("Please describe your issue in detail.");
-  if (!description || !description.trim()) return;
-
+  if (!modal || !orderInput || !subjectInput || !descriptionInput) return;
+  orderInput.value = orderId;
+  subjectInput.value = "";
+  descriptionInput.value = "";
+  modal.style.display = "flex";
+  subjectInput.focus();
+}
+function closeComplaintDialog() {
+  const modal = document.getElementById("complaintModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+function submitComplaintForm() {
+  const orderInput = document.getElementById("complaintOrderId");
+  const subjectInput = document.getElementById("complaintSubject");
+  const descriptionInput = document.getElementById("complaintDescription");
+  if (!orderInput || !subjectInput || !descriptionInput) return;
+  const orderId = Number(orderInput.value);
+  const subject = subjectInput.value.trim();
+  const description = descriptionInput.value.trim();
   fetch(`${API_BASE}/orders/complaints`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${localStorage.getItem("jwt")}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      orderId: Number(orderId),
-      subject: subject.trim(),
-      description: description.trim()
-    })
+    body: JSON.stringify({orderId,
+      subject,
+      description})
   })
     .then(async res => {
       if (!res.ok) {
@@ -1868,11 +1883,13 @@ function openComplaintDialog(orderId, event) {
     })
     .then(() => {
       alert("Complaint submitted successfully.");
+      closeComplaintDialog();
       loadMyComplaints();
-    })
+      loadOrders();
+      })
     .catch(err => {
       console.error("Complaint submit failed:", err);
-      alert("Unable to submit complaint right now.");
+      alert(err.message || "Unable to submit complaint right now.");
     });
 }
 function loadMyComplaints() {

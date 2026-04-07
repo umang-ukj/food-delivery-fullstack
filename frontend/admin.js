@@ -531,7 +531,9 @@ function loadComplaintsAdmin() {
         return;
       }
 
-      container.innerHTML = complaints.map(c => `
+      container.innerHTML = complaints.map(c => {
+        const isLocked = c.status === "CLOSED";
+        return `
         <div class="complaint-card">
           <div class="complaint-header">
             <strong>Complaint #${c.id} • Order ${c.orderId}</strong>
@@ -539,20 +541,19 @@ function loadComplaintsAdmin() {
           </div>
           <p><strong>${c.subject}</strong></p>
           <p>${c.description}</p>
-          <textarea id="adminResp-${c.id}" class="admin-input complaint-response-input" placeholder="Write reply...">${c.adminResponse || ""}</textarea>
+          <textarea id="adminResp-${c.id}" class="admin-input complaint-response-input" placeholder="Write reply..." ${isLocked ? "disabled" : ""}>${c.adminResponse || ""}</textarea>
           <div class="complaint-actions-row">
-            <select id="status-${c.id}" class="admin-input complaint-status-select">
-              <option value="IN_REVIEW" ${c.status === "IN_REVIEW" ? "selected" : ""}>IN_REVIEW</option>
+            <select id="status-${c.id}" class="admin-input complaint-status-select" ${isLocked ? "disabled" : ""}> <option value="IN_REVIEW" ${c.status === "IN_REVIEW" ? "selected" : ""}>IN_REVIEW</option>
               <option value="RESOLVED" ${c.status === "RESOLVED" ? "selected" : ""}>RESOLVED</option>
               <option value="CLOSED" ${c.status === "CLOSED" ? "selected" : ""}>CLOSED</option>
             </select>
             <label class="admin-check">
-              <input type="checkbox" id="refund-${c.id}"> Initiate refund
+              <input type="checkbox" id="refund-${c.id}" ${isLocked ? "disabled" : ""}> Initiate refund
             </label>
-            <button class="admin-mini-btn" onclick="submitComplaintAction(${c.id})">Update</button>
-          </div>
+              ${isLocked ? "<span class='muted-text'>Closed complaints are read-only.</span>" : `<button class="admin-mini-btn" onclick="submitComplaintAction(${c.id})">Update</button>`}          </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
     })
     .catch(err => {
       console.error(err);
@@ -587,6 +588,6 @@ function submitComplaintAction(complaintId) {
     })
     .catch(err => {
       console.error(err);
-      alert("Unable to update complaint");
+      alert(err.message ||"Unable to update complaint");
     });
 }

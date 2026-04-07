@@ -34,6 +34,20 @@
       <div id="myComplaints" class="complaints-list"></div>
     </section>
   </div>
+  <div id="complaintModal" class="modal-overlay complaint-modal-overlay" style="display:none;" onclick="closeComplaintDialog()">
+    <div class="modal-card complaint-modal-card" onclick="event.stopPropagation()">
+      <h3>Raise Complaint</h3>
+      <input type="hidden" id="complaintOrderId" />
+      <label for="complaintSubject">Subject</label>
+      <input id="complaintSubject" class="admin-input" maxlength="120" placeholder="Late delivery" />
+      <label for="complaintDescription">Description</label>
+      <textarea id="complaintDescription" class="admin-input complaint-response-input" maxlength="1500" placeholder="Please describe your issue in detail."></textarea>
+      <div class="complaint-actions-row">
+        <button class="admin-mini-btn" onclick="submitComplaintForm()">Submit</button>
+        <button class="admin-mini-btn admin-danger-btn" onclick="closeComplaintDialog()">Cancel</button>
+      </div>
+    </div>
+  </div>
   <script src="app.js"></script>
   <script>
     loadOrders();

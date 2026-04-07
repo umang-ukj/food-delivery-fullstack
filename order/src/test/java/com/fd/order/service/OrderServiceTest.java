@@ -1,6 +1,7 @@
 package com.fd.order.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -119,6 +120,7 @@ class OrderServiceTest {
         request.setDescription("Order arrived too late and food was cold.");
 
         when(repository.findById(70L)).thenReturn(Optional.of(order));
+        when(complaintRepository.existsByOrderIdAndUserId(70L, 5L)).thenReturn(false);
         when(complaintRepository.save(any(OrderComplaint.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         OrderComplaint complaint = service.createComplaint(5L, request);
@@ -126,5 +128,37 @@ class OrderServiceTest {
         assertEquals(ComplaintStatus.OPEN, complaint.getStatus());
         assertEquals(70L, complaint.getOrderId());
         assertEquals(5L, complaint.getUserId());
+    }
+    @Test
+    void createComplaint_duplicatePerOrder_throwsConflict() {
+        Order order = new Order();
+        order.setId(70L);
+        order.setUserId(5L);
+
+        CreateComplaintRequest request = new CreateComplaintRequest();
+        request.setOrderId(70L);
+        request.setSubject("Late delivery");
+        request.setDescription("Order arrived too late and food was cold.");
+
+        when(repository.findById(70L)).thenReturn(Optional.of(order));
+        when(complaintRepository.existsByOrderIdAndUserId(70L, 5L)).thenReturn(true);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.createComplaint(5L, request));
+        assertEquals("Only one complaint is allowed per order", ex.getMessage());
+    }
+    @Test
+    void adminActionOnComplaint_whenAlreadyClosed_throwsConflict() {
+        OrderComplaint complaint = new OrderComplaint();
+        complaint.setId(99L);
+        complaint.setStatus(ComplaintStatus.CLOSED);
+
+        when(complaintRepository.findById(99L)).thenReturn(Optional.of(complaint));
+
+        com.fd.order.dto.AdminComplaintActionRequest request = new com.fd.order.dto.AdminComplaintActionRequest();
+        request.setStatus(ComplaintStatus.RESOLVED);
+        request.setAdminResponse("Updated response");
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.adminActionOnComplaint(99L, request));
+        assertEquals("Closed complaints cannot be edited", ex.getMessage());
     }
 }

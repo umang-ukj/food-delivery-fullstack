@@ -148,6 +148,9 @@ public class OrderService {
         if (!order.getUserId().equals(userId)) {
             throw new IllegalArgumentException("You can only raise complaints for your own orders");
         }
+        if (complaintRepository.existsByOrderIdAndUserId(order.getId(), userId)) {
+            throw new IllegalStateException("Only one complaint is allowed per order");
+        }
 
         OrderComplaint complaint = new OrderComplaint();
         complaint.setOrderId(order.getId());
@@ -170,7 +173,9 @@ public class OrderService {
     public OrderComplaint adminActionOnComplaint(Long complaintId, AdminComplaintActionRequest request) {
         OrderComplaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() -> new IllegalArgumentException("Complaint not found"));
-
+        if (ComplaintStatus.CLOSED.equals(complaint.getStatus())) {
+            throw new IllegalStateException("Closed complaints cannot be edited");
+        }
         complaint.setStatus(request.getStatus());
         complaint.setAdminResponse(request.getAdminResponse());
 

@@ -103,6 +103,9 @@ public class OrderController {
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
+        catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
+        }
     }
     
     @GetMapping("/complaints/me")
@@ -138,6 +141,9 @@ public class OrderController {
             return new ComplaintResponse(complaint);
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+        catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
     }
 

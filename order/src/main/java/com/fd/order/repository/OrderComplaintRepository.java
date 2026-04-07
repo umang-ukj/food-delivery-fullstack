@@ -11,4 +11,5 @@ public interface OrderComplaintRepository extends JpaRepository<OrderComplaint, 
     List<OrderComplaint> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<OrderComplaint> findAllByOrderByCreatedAtDesc();
     Optional<OrderComplaint> findByIdAndUserId(Long id, Long userId);
+    boolean existsByOrderIdAndUserId(Long orderId, Long userId);
 }

@@ -1202,3 +1202,13 @@ body {
 .muted-text {
   color: #666;
 }
+
+.complaint-modal-overlay {
+  z-index: 2000;
+}
+
+.complaint-modal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
