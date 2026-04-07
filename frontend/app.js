@@ -746,6 +746,7 @@ function createOrderListItem(order, index) {
         </div>
         <div style="display:flex; gap:8px;">
           ${canCancel ? `<button class="cancel-btn" onclick="cancelOrderById('${order.id}', event)">Cancel</button>` : ""}
+          <button class="complaint-btn" onclick="openComplaintDialog('${order.id}', event)">Raise Complaint</button>
           <button class="reorder-btn" onclick="reorderOrderById('${order.id}', event)">Reorder</button>
         </div>
       </div>
@@ -1835,4 +1836,81 @@ function renderSuggestions(results) {
 
     box.appendChild(div);
   });
+}
+
+function openComplaintDialog(orderId, event) {
+  if (event) event.stopPropagation();
+
+  const subject = prompt("Complaint subject (example: Late delivery)");
+  if (!subject || !subject.trim()) return;
+
+  const description = prompt("Please describe your issue in detail.");
+  if (!description || !description.trim()) return;
+
+  fetch(`${API_BASE}/orders/complaints`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      orderId: Number(orderId),
+      subject: subject.trim(),
+      description: description.trim()
+    })
+  })
+    .then(async res => {
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || "Failed to create complaint");
+      }
+      return res.json();
+    })
+    .then(() => {
+      alert("Complaint submitted successfully.");
+      loadMyComplaints();
+    })
+    .catch(err => {
+      console.error("Complaint submit failed:", err);
+      alert("Unable to submit complaint right now.");
+    });
+}
+function loadMyComplaints() {
+  const container = document.getElementById("myComplaints");
+  if (!container) return;
+
+  fetch(`${API_BASE}/orders/complaints/me`, {
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+    }
+  })
+    .then(async res => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to load complaints");
+      }
+      return res.json();
+    })
+    .then(complaints => {
+      if (!Array.isArray(complaints) || complaints.length === 0) {
+        container.innerHTML = "<p class='muted-text'>No complaints raised yet.</p>";
+        return;
+      }
+
+      container.innerHTML = complaints.map(c => `
+        <div class="complaint-card">
+          <div class="complaint-header">
+            <strong>#${c.id} • Order ${c.orderId}</strong>
+            <span class="complaint-status">${c.status}</span>
+          </div>
+          <p><strong>${c.subject}</strong></p>
+          <p>${c.description}</p>
+          ${c.adminResponse ? `<p class="admin-reply"><strong>Admin reply:</strong> ${c.adminResponse}</p>` : "<p class='muted-text'>Awaiting admin response.</p>"}
+        </div>
+      `).join("");
+    })
+    .catch(err => {
+      console.error(err);
+      container.innerHTML = "<p class='muted-text'>Failed to load complaints.</p>";
+    });
 }

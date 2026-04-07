@@ -1125,3 +1125,80 @@ body {
     flex-wrap: wrap;
   }
 }
+
+/* Complaints */
+.complaints-section,
+.complaints-admin-panel {
+  margin-top: 24px;
+}
+
+.section-subtitle {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.complaints-list {
+  display: grid;
+  gap: 12px;
+}
+
+.complaint-card {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.complaint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.complaint-status {
+  background: #fff1ec;
+  color: #d84315;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.complaint-btn {
+  border: none;
+  padding: 8px 10px;
+  background: #f4f4f4;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.complaint-actions-row {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.complaint-response-input {
+  width: 100%;
+  margin-top: 8px;
+  min-height: 72px;
+}
+
+.complaint-status-select {
+  width: 170px;
+}
+
+.admin-reply {
+  background: #f8f8f8;
+  border-left: 3px solid #ff784e;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.muted-text {
+  color: #666;
+}

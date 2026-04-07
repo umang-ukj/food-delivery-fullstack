@@ -16,6 +16,7 @@
     <div class="admin-actions">
       <button class="primary-btn admin-action-btn" onclick="showAddRestaurant()">Add Restaurant</button>
       <button class="primary-btn admin-action-btn" onclick="showAddMenu()">Add Menu Item</button>
+      <button class="primary-btn admin-action-btn" onclick="showComplaintsPanel()">Manage Complaints</button>
     </div>
 
     <div id="content" class="admin-form-host"></div>
@@ -31,6 +32,10 @@
         <ul id="menuList" class="admin-list admin-menu-list"></ul>
       </section>
     </div>
+    <section class="admin-panel complaints-admin-panel">
+      <h3>User Complaints</h3>
+      <div id="adminComplaintsList" class="complaints-list"></div>
+    </section>
   </div>
   <script src="navbar.js"></script>
   <script>
@@ -44,6 +49,7 @@
   <script src="admin.js"></script>
   <script>
     loadRestaurants();
+    loadComplaintsAdmin();
   </script>
 </body>
 

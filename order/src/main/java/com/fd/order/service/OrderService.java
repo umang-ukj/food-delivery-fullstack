@@ -10,13 +10,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.fd.events.OrderConfirmedEvent;
 import com.fd.events.PaymentMethod;
+import com.fd.order.dto.AdminComplaintActionRequest;
+import com.fd.order.dto.CreateComplaintRequest;
 import com.fd.order.dto.CreateOrderRequest;
 import com.fd.order.dto.OrderItemRequest;
+import com.fd.order.entity.ComplaintStatus;
 import com.fd.order.entity.Order;
+import com.fd.order.entity.OrderComplaint;
 import com.fd.order.entity.OrderItem;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.event.producer.OrderConfirmedEventProducer;
 import com.fd.order.event.producer.OrderEventProducer;
+import com.fd.order.repository.OrderComplaintRepository;
 import com.fd.order.repository.OrderRepository;
 
 import jakarta.transaction.Transactional;
@@ -27,12 +32,14 @@ public class OrderService {
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private final OrderRepository repository;
     private final OrderEventProducer producer;
+    private final OrderComplaintRepository complaintRepository;
     private final OrderConfirmedEventProducer orderConfirmedProducer;
     private final EmailService emailService;
     private static final EnumSet<OrderStatus> CANCELLABLE_STATUSES =EnumSet.of(OrderStatus.CREATED, OrderStatus.CONFIRMED, OrderStatus.PICKED_UP);
-    public OrderService(OrderRepository repository,OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer, EmailService emailService) {
+    public OrderService(OrderRepository repository, OrderComplaintRepository complaintRepository, OrderEventProducer producer,OrderConfirmedEventProducer orderConfirmedProducer, EmailService emailService) {
         this.repository = repository;
         this.producer = producer;
+        this.complaintRepository = complaintRepository;
         this.orderConfirmedProducer=orderConfirmedProducer;
         this.emailService=emailService;
     }
@@ -132,5 +139,48 @@ public class OrderService {
         producer.publishOrderCancelled(orderId);
         log.info("Order {} cancelled by user {}", orderId, userId);
         return saved;
+    }
+	
+	public OrderComplaint createComplaint(Long userId, CreateComplaintRequest request) {
+        Order order = repository.findById(request.getOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        if (!order.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("You can only raise complaints for your own orders");
+        }
+
+        OrderComplaint complaint = new OrderComplaint();
+        complaint.setOrderId(order.getId());
+        complaint.setUserId(userId);
+        complaint.setSubject(request.getSubject());
+        complaint.setDescription(request.getDescription());
+        complaint.setStatus(ComplaintStatus.OPEN);
+
+        return complaintRepository.save(complaint);
+    }
+	
+	public List<OrderComplaint> getComplaintsForUser(Long userId) {
+        return complaintRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    public List<OrderComplaint> getAllComplaints() {
+        return complaintRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    public OrderComplaint adminActionOnComplaint(Long complaintId, AdminComplaintActionRequest request) {
+        OrderComplaint complaint = complaintRepository.findById(complaintId)
+                .orElseThrow(() -> new IllegalArgumentException("Complaint not found"));
+
+        complaint.setStatus(request.getStatus());
+        complaint.setAdminResponse(request.getAdminResponse());
+
+        if (request.isInitiateRefund()) {
+            complaint.setStatus(ComplaintStatus.REFUND_INITIATED);
+            complaint.setRefundRequestedAt(LocalDateTime.now());
+            producer.publishOrderCancelled(complaint.getOrderId());
+            log.info("Refund initiated from complaintId={} for orderId={}", complaintId, complaint.getOrderId());
+        }
+
+        return complaintRepository.save(complaint);
     }
 }

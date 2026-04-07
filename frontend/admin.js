@@ -505,19 +505,88 @@ function deleteMenuItem(menuId) {
     .catch(() => alert("Failed to delete menu"));
 }
 
-/* function updateMenuPrice(menuId, newPrice) {
-  fetch(`${API_BASE}/restaurants/${selectedRestaurantId}/menu/${menuId}`, {
-    method: "PUT",
-    headers: {
-      ...authHeaders(),
-      "Content-Type": "application/json"
-    },
+function showComplaintsPanel() {
+  const section = document.getElementById("adminComplaintsList");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+function loadComplaintsAdmin() {
+  const container = document.getElementById("adminComplaintsList");
+  if (!container) return;
+
+  fetch(`${API_BASE}/orders/complaints`, {
+    headers: authHeaders()
+  })
+    .then(async res => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to fetch complaints");
+      }
+      return res.json();
+    })
+    .then(complaints => {
+      if (!Array.isArray(complaints) || complaints.length === 0) {
+        container.innerHTML = "<p class='muted-text'>No complaints available.</p>";
+        return;
+      }
+
+      container.innerHTML = complaints.map(c => `
+        <div class="complaint-card">
+          <div class="complaint-header">
+            <strong>Complaint #${c.id} • Order ${c.orderId}</strong>
+            <span class="complaint-status">${c.status}</span>
+          </div>
+          <p><strong>${c.subject}</strong></p>
+          <p>${c.description}</p>
+          <textarea id="adminResp-${c.id}" class="admin-input complaint-response-input" placeholder="Write reply...">${c.adminResponse || ""}</textarea>
+          <div class="complaint-actions-row">
+            <select id="status-${c.id}" class="admin-input complaint-status-select">
+              <option value="IN_REVIEW" ${c.status === "IN_REVIEW" ? "selected" : ""}>IN_REVIEW</option>
+              <option value="RESOLVED" ${c.status === "RESOLVED" ? "selected" : ""}>RESOLVED</option>
+              <option value="CLOSED" ${c.status === "CLOSED" ? "selected" : ""}>CLOSED</option>
+            </select>
+            <label class="admin-check">
+              <input type="checkbox" id="refund-${c.id}"> Initiate refund
+            </label>
+            <button class="admin-mini-btn" onclick="submitComplaintAction(${c.id})">Update</button>
+          </div>
+        </div>
+      `).join("");
+    })
+    .catch(err => {
+      console.error(err);
+      container.innerHTML = "<p class='muted-text'>Unable to load complaints.</p>";
+    });
+}
+function submitComplaintAction(complaintId) {
+  const statusEl = document.getElementById(`status-${complaintId}`);
+  const responseEl = document.getElementById(`adminResp-${complaintId}`);
+  const refundEl = document.getElementById(`refund-${complaintId}`);
+  if (!statusEl || !responseEl || !refundEl) return;
+
+  fetch(`${API_BASE}/orders/complaints/${complaintId}/admin-action`, {
+    method: "POST",
+    headers: authHeaders(),
     body: JSON.stringify({
-      price: Number(newPrice)
+      status: statusEl.value,
+      adminResponse: responseEl.value.trim(),
+      initiateRefund: refundEl.checked
     })
   })
-  .then(res => {
-    if (!res.ok) throw new Error();
-  })
-  .catch(() => alert("Failed to update price"));
-} */
+  .then(async res => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to update complaint");
+      }
+      return res.json();
+    })
+    .then(() => {
+      alert("Complaint updated");
+      loadComplaintsAdmin();
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Unable to update complaint");
+    });
+}

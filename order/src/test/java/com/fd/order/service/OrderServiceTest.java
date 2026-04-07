@@ -20,12 +20,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fd.events.OrderConfirmedEvent;
 import com.fd.events.PaymentMethod;
+import com.fd.order.dto.CreateComplaintRequest;
 import com.fd.order.dto.CreateOrderRequest;
 import com.fd.order.dto.OrderItemRequest;
+import com.fd.order.entity.ComplaintStatus;
 import com.fd.order.entity.Order;
+import com.fd.order.entity.OrderComplaint;
 import com.fd.order.entity.OrderStatus;
 import com.fd.order.event.producer.OrderConfirmedEventProducer;
 import com.fd.order.event.producer.OrderEventProducer;
+import com.fd.order.repository.OrderComplaintRepository;
 import com.fd.order.repository.OrderRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,12 +43,13 @@ class OrderServiceTest {
     private OrderConfirmedEventProducer orderConfirmedProducer;
     @Mock
     private EmailService emailService;
-
+    @Mock
+    private OrderComplaintRepository complaintRepository;
     private OrderService service;
 
     @BeforeEach
     void setUp() {
-        service = new OrderService(repository, producer, orderConfirmedProducer, emailService);
+        service = new OrderService(repository,complaintRepository, producer, orderConfirmedProducer, emailService);
     }
 
     @Test
@@ -101,5 +106,25 @@ class OrderServiceTest {
         verify(producer, never()).publishOrderCreated(any(Order.class), any(PaymentMethod.class));
         verify(orderConfirmedProducer, never()).publish(any(OrderConfirmedEvent.class));
         verify(emailService, never()).sendOrderConfirmationEmail(eq("user@example.com"), any(Order.class));
+    }
+    @Test
+    void createComplaint_forOwnOrder_savesOpenComplaint() {
+        Order order = new Order();
+        order.setId(70L);
+        order.setUserId(5L);
+
+        CreateComplaintRequest request = new CreateComplaintRequest();
+        request.setOrderId(70L);
+        request.setSubject("Late delivery");
+        request.setDescription("Order arrived too late and food was cold.");
+
+        when(repository.findById(70L)).thenReturn(Optional.of(order));
+        when(complaintRepository.save(any(OrderComplaint.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        OrderComplaint complaint = service.createComplaint(5L, request);
+
+        assertEquals(ComplaintStatus.OPEN, complaint.getStatus());
+        assertEquals(70L, complaint.getOrderId());
+        assertEquals(5L, complaint.getUserId());
     }
 }
