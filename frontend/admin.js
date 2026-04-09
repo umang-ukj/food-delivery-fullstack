@@ -1,6 +1,22 @@
 const API_BASE = "http://localhost:8080";
 let selectedRestaurantId = null;
+const Restaurant_service_url = "http://localhost:8082";
 
+function resolveImageUrl(imageUrl, fallback) {
+  if (!imageUrl || imageUrl.trim() === "") {
+    return fallback;
+  }
+
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://") || imageUrl.startsWith("data:")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("/uploads/")) {
+    return `${Restaurant_service_url}${imageUrl}`;
+  }
+
+  return imageUrl;
+}
 //prevents user from opening admin panel manually
 (function protectAdmin() {
   const token = localStorage.getItem("jwt");
@@ -223,10 +239,7 @@ function loadRestaurants() {
         li.innerHTML = `
     <div class="admin-restaurant-card">
       <img 
-        src="${r.imageUrl
-            ? `http://localhost:8082${r.imageUrl}`
-            : '/images/default-restaurant.png'
-          }"
+        src="${resolveImageUrl(r.imageUrl, '/images/default-restaurant.png')}"
         class="admin-thumb"
       />
       <div class="admin-item-main">>
@@ -390,7 +403,7 @@ function selectRestaurant(restaurantId) {
         const isVeg = item.isVeg === true;
         li.innerHTML = `
     <img
-      src="${item.imageUrl || '/images/default-food.png'}"
+      src="${resolveImageUrl(item.imageUrl, '/images/default-food.png')}"
       class="admin-thumb admin-thumb-sm"
     />
 

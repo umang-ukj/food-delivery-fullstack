@@ -14,7 +14,23 @@ let currentRestaurantLocation = null;
 let restaurantDietFilter = "all";
 let menuDietFilter = "all";
 const CART_STORAGE_KEY = "fd_cart";
+const Restaurant_service_url = "http://localhost:8082";
 
+function resolveImageUrl(imageUrl, fallback) {
+  if (!imageUrl || imageUrl.trim() === "") {
+    return fallback;
+  }
+
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://") || imageUrl.startsWith("data:")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("/uploads/")) {
+    return `${Restaurant_service_url}${imageUrl}`;
+  }
+
+  return imageUrl;
+}
 function loadCartStateFromStorage() {
   const raw = localStorage.getItem(CART_STORAGE_KEY);
 
@@ -994,7 +1010,7 @@ function loadMenu() {
       }
       document.getElementById("restaurantName").innerText = r.name;
       selectedRestaurantName = r.name || null;
-      selectedRestaurantImageUrl = r.imageUrl || null;
+      selectedRestaurantImageUrl = resolveImageUrl(r.imageUrl, null);
       //loadAddresses(r.location);
       currentRestaurantLocation = r.location;
       setupCheckoutAccess();
@@ -1043,7 +1059,7 @@ function renderMenuItems(menuItems = []) {
 
     li.innerHTML = `
       <img
-        src="${item.imageUrl || '/images/default-food.png'}"
+        src="${resolveImageUrl(item.imageUrl, '/images/default-food.png')}"
         style="
           width:80px;
           height:60px;
@@ -1239,8 +1255,9 @@ function renderRestaurantCards(restaurants, container) {
     const card = document.createElement("div");
     card.className = "restaurant-card";
     card.innerHTML = `
-      <img src="${r.imageUrl || '/images/default-restaurant.png'}" style="width:100%;height:140px;object-fit:cover;border-radius:6px;"/>
-      <h3>${r.name}</h3>
+      <img src="${resolveImageUrl(r.imageUrl, '/images/default-restaurant.png')}" 
+          style="width:100%;height:140px;object-fit:cover;border-radius:6px;"/>   
+         <h3>${r.name}</h3>
       <p>${r.location}</p>
       <button onclick="openMenu('${r.id}')">View Menu</button>
     `;
@@ -1792,7 +1809,7 @@ function renderSearchResults(results) {
 
     card.innerHTML = `
       <img 
-        src="${r.imageUrl || '/images/default-restaurant.png'}"
+        src="${resolveImageUrl(r.imageUrl, '/images/default-restaurant.png')}"
         style="width:100%;height:140px;object-fit:cover;border-radius:6px;"
       />
       <h3>${r.restaurantName}</h3>
