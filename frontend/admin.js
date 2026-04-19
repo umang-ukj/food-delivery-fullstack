@@ -1,7 +1,8 @@
 const API_BASE = "http://localhost:8080";
 let selectedRestaurantId = null;
 const Restaurant_service_url = "http://localhost:8082";
-
+const ADMIN_ORDERS_PAGE_SIZE = 10;
+let adminOrdersPage = 0;
 function resolveImageUrl(imageUrl, fallback) {
   if (!imageUrl || imageUrl.trim() === "") {
     return fallback;
@@ -618,6 +619,12 @@ function resetOrdersFilters() {
   document.getElementById("ordersFilterStatus").value = "";
   document.getElementById("ordersFilterFrom").value = "";
   document.getElementById("ordersFilterTo").value = "";
+  adminOrdersPage = 0;
+  loadOrdersAdmin();
+}
+
+function applyOrdersFilters() {
+  adminOrdersPage = 0;
   loadOrdersAdmin();
 }
 
@@ -644,7 +651,8 @@ function loadOrdersAdmin() {
   if (status) params.append("status", status);
   if (orderedFrom) params.append("orderedFrom", orderedFrom);
   if (orderedTo) params.append("orderedTo", orderedTo);
-
+  params.append("page", adminOrdersPage);
+  params.append("size", ADMIN_ORDERS_PAGE_SIZE);
   tableBody.innerHTML = `<tr><td colspan="8" class="muted-text">Loading orders...</td></tr>`;
 
   fetch(`${API_BASE}/orders/admin?${params.toString()}`, {
@@ -657,7 +665,21 @@ function loadOrdersAdmin() {
       }
       return res.json();
     })
-    .then(orders => {
+    .then(pageResult => {
+      const orders = Array.isArray(pageResult) ? pageResult : (pageResult.content || []);
+
+      if (!Array.isArray(pageResult)) {
+        adminOrdersPage = pageResult.number ?? adminOrdersPage;
+        updateOrdersPagination(pageResult);
+      } else {
+        updateOrdersPagination({
+          number: 0,
+          totalPages: 1,
+          first: true,
+          last: true
+        });
+      }
+
       if (!Array.isArray(orders) || orders.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="8" class="muted-text">No orders found for the selected filters.</td></tr>`;
         return;
@@ -678,6 +700,28 @@ function loadOrdersAdmin() {
     })
     .catch(err => {
       console.error(err);
+      updateOrdersPagination();
       tableBody.innerHTML = `<tr><td colspan="8" class="muted-text">Unable to load orders.</td></tr>`;
     });
+}
+
+function updateOrdersPagination(pageData = { number: 0, totalPages: 1, first: true, last: true }) {
+  const prevBtn = document.getElementById("ordersPrevBtn");
+  const nextBtn = document.getElementById("ordersNextBtn");
+  const pageInfo = document.getElementById("ordersPageInfo");
+  if (!prevBtn || !nextBtn || !pageInfo) return;
+
+  const pageNumber = (pageData.number ?? 0) + 1;
+  const totalPages = Math.max(pageData.totalPages ?? 1, 1);
+
+  pageInfo.textContent = `Page ${pageNumber} of ${totalPages}`;
+  prevBtn.disabled = pageData.first ?? pageNumber <= 1;
+  nextBtn.disabled = pageData.last ?? pageNumber >= totalPages;
+}
+
+function changeOrdersPage(direction) {
+  const targetPage = adminOrdersPage + direction;
+  if (targetPage < 0) return;
+  adminOrdersPage = targetPage;
+  loadOrdersAdmin();
 }

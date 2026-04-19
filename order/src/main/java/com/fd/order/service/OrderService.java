@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.fd.events.OrderConfirmedEvent;
 import com.fd.events.PaymentMethod;
@@ -189,8 +191,8 @@ public class OrderService {
         return complaintRepository.save(complaint);
     }
     
-    public List<Order> getAllOrdersForAdmin(Long userId, String restaurantId, OrderStatus status, LocalDateTime orderedFrom, LocalDateTime orderedTo) {
-        return repository.findAllForAdmin(userId, restaurantId, status, orderedFrom, orderedTo);
+    public Page<Order> getAllOrdersForAdmin(Long userId, String restaurantId, OrderStatus status, LocalDateTime orderedFrom, LocalDateTime orderedTo, Pageable pageable) {
+        return repository.findAllForAdmin(userId, restaurantId, status, orderedFrom, orderedTo, pageable);
 }
 
 }

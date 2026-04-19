@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -154,10 +157,12 @@ public class OrderController {
         }
     }
     @GetMapping("/admin")
-    public List<OrderResponse> getAllOrdersForAdmin(@RequestHeader("Authorization") String authHeader,@RequestParam(required = false) Long userId,
+    public Page<OrderResponse> getAllOrdersForAdmin(@RequestHeader("Authorization") String authHeader,@RequestParam(required = false) Long userId,
             @RequestParam(required = false) String restaurantId, @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate orderedFrom,
-            @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate orderedTo) {
+            @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate orderedTo,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    	
         String token = authHeader.substring(7);
         if (!"admin".equals(jwtUtil.extractRole(token))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can view all orders");
@@ -165,7 +170,11 @@ public class OrderController {
 
         LocalDateTime fromDateTime = orderedFrom != null ? orderedFrom.atStartOfDay() : null;
         LocalDateTime toDateTime = orderedTo != null ? orderedTo.plusDays(1).atStartOfDay().minusSeconds(1) : null;
+    
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
 
-        return orderService.getAllOrdersForAdmin(userId, restaurantId, status, fromDateTime, toDateTime).stream().map(OrderResponse::new).toList();
+        return orderService.getAllOrdersForAdmin(userId, restaurantId, status, fromDateTime, toDateTime, (Pageable) PageRequest.of(safePage, safeSize))
+                .map(OrderResponse::new);
     }
 }

@@ -53,7 +53,7 @@
         </select>
         <input id="ordersFilterFrom" class="admin-input" type="date" />
         <input id="ordersFilterTo" class="admin-input" type="date" />
-        <button class="admin-mini-btn" onclick="loadOrdersAdmin()">Apply Filters</button>
+        <button class="admin-mini-btn" onclick="applyOrdersFilters()">Apply Filters</button>
         <button class="admin-mini-btn" onclick="resetOrdersFilters()">Reset</button>
       </div>
       <div class="admin-orders-table-wrapper">
@@ -76,6 +76,11 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="orders-pagination">
+        <button id="ordersPrevBtn" class="admin-mini-btn" onclick="changeOrdersPage(-1)" disabled>Previous</button>
+        <span id="ordersPageInfo" class="muted-text">Page 1 of 1</span>
+        <button id="ordersNextBtn" class="admin-mini-btn" onclick="changeOrdersPage(1)" disabled>Next</button>
       </div>
     </section>
   </div>
