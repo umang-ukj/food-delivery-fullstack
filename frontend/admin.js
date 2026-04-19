@@ -604,3 +604,80 @@ function submitComplaintAction(complaintId) {
       alert(err.message ||"Unable to update complaint");
     });
 }
+
+function showOrdersPanel() {
+  const section = document.querySelector(".orders-admin-panel");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function resetOrdersFilters() {
+  document.getElementById("ordersFilterUserId").value = "";
+  document.getElementById("ordersFilterRestaurantId").value = "";
+  document.getElementById("ordersFilterStatus").value = "";
+  document.getElementById("ordersFilterFrom").value = "";
+  document.getElementById("ordersFilterTo").value = "";
+  loadOrdersAdmin();
+}
+
+function formatDateTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString();
+}
+
+function loadOrdersAdmin() {
+  const tableBody = document.getElementById("adminOrdersTableBody");
+  if (!tableBody) return;
+
+  const userId = document.getElementById("ordersFilterUserId").value.trim();
+  const restaurantId = document.getElementById("ordersFilterRestaurantId").value.trim();
+  const status = document.getElementById("ordersFilterStatus").value.trim();
+  const orderedFrom = document.getElementById("ordersFilterFrom").value;
+  const orderedTo = document.getElementById("ordersFilterTo").value;
+
+  const params = new URLSearchParams();
+  if (userId) params.append("userId", userId);
+  if (restaurantId) params.append("restaurantId", restaurantId);
+  if (status) params.append("status", status);
+  if (orderedFrom) params.append("orderedFrom", orderedFrom);
+  if (orderedTo) params.append("orderedTo", orderedTo);
+
+  tableBody.innerHTML = `<tr><td colspan="8" class="muted-text">Loading orders...</td></tr>`;
+
+  fetch(`${API_BASE}/orders/admin?${params.toString()}`, {
+    headers: authHeaders()
+  })
+    .then(async res => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to fetch orders");
+      }
+      return res.json();
+    })
+    .then(orders => {
+      if (!Array.isArray(orders) || orders.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="8" class="muted-text">No orders found for the selected filters.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = orders.map(order => `
+        <tr>
+          <td>${order.id}</td>
+          <td>${order.userId ?? "—"}</td>
+          <td>${order.userEmail || "—"}</td>
+          <td>${order.restaurantName || "—"} <br/><small>${order.restaurantId || ""}</small></td>
+          <td>${order.status || "—"}</td>
+          <td>${order.totalAmount != null ? `₹${Number(order.totalAmount).toFixed(2)}` : "—"}</td>
+          <td>${formatDateTime(order.orderedAt)}</td>
+          <td>${formatDateTime(order.deliveredAt)}</td>
+        </tr>
+      `).join("");
+    })
+    .catch(err => {
+      console.error(err);
+      tableBody.innerHTML = `<tr><td colspan="8" class="muted-text">Unable to load orders.</td></tr>`;
+    });
+}

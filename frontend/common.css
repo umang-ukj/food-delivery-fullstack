@@ -1212,3 +1212,36 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+.orders-admin-panel {
+  margin-top: 24px;
+}
+
+.admin-order-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-orders-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #fff;
+}
+
+.admin-orders-table th,
+.admin-orders-table td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-orders-table th {
+  background: #f8fafc;
+}

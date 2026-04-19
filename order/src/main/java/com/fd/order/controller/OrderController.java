@@ -1,7 +1,10 @@
 package com.fd.order.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,6 +25,7 @@ import com.fd.order.dto.OrderDetailsResponse;
 import com.fd.order.dto.OrderResponse;
 import com.fd.order.entity.Order;
 import com.fd.order.entity.OrderComplaint;
+import com.fd.order.entity.OrderStatus;
 import com.fd.order.service.OrderService;
 import com.fd.order.util.JwtUtil;
 
@@ -47,6 +52,7 @@ public class OrderController {
         String token = authHeader.substring(7);
         Long userId = jwtUtil.extractUserId(token); 
         String userEmail = jwtUtil.extractEmail(token);
+        
         if (!"user".equals(jwtUtil.extractRole(token))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Admins cannot place orders");
         }
@@ -70,6 +76,7 @@ public class OrderController {
         return orderService.findByUserId(userId).stream()
                 .map(OrderResponse::new).toList();
     }
+    
     @PostMapping("/{orderId}/cancel")
     public OrderDetailsResponse cancelOrder(@RequestHeader("Authorization") String authHeader,@PathVariable Long orderId) {
         String token = authHeader.substring(7);
@@ -146,5 +153,19 @@ public class OrderController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
         }
     }
+    @GetMapping("/admin")
+    public List<OrderResponse> getAllOrdersForAdmin(@RequestHeader("Authorization") String authHeader,@RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String restaurantId, @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate orderedFrom,
+            @RequestParam(required = false)@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate orderedTo) {
+        String token = authHeader.substring(7);
+        if (!"admin".equals(jwtUtil.extractRole(token))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can view all orders");
+        }
 
+        LocalDateTime fromDateTime = orderedFrom != null ? orderedFrom.atStartOfDay() : null;
+        LocalDateTime toDateTime = orderedTo != null ? orderedTo.plusDays(1).atStartOfDay().minusSeconds(1) : null;
+
+        return orderService.getAllOrdersForAdmin(userId, restaurantId, status, fromDateTime, toDateTime).stream().map(OrderResponse::new).toList();
+    }
 }

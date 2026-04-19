@@ -17,6 +17,7 @@
       <button class="primary-btn admin-action-btn" onclick="showAddRestaurant()">Add Restaurant</button>
       <button class="primary-btn admin-action-btn" onclick="showAddMenu()">Add Menu Item</button>
       <button class="primary-btn admin-action-btn" onclick="showComplaintsPanel()">Manage Complaints</button>
+      <button class="primary-btn admin-action-btn" onclick="showOrdersPanel()">View All Orders</button>
     </div>
 
     <div id="content" class="admin-form-host"></div>
@@ -36,6 +37,47 @@
       <h3>User Complaints</h3>
       <div id="adminComplaintsList" class="complaints-list"></div>
     </section>
+    <section class="admin-panel orders-admin-panel">
+      <h3>All User Orders</h3>
+      <div class="admin-order-filters">
+        <input id="ordersFilterUserId" class="admin-input" type="number" min="1" placeholder="Filter by User ID" />
+        <input id="ordersFilterRestaurantId" class="admin-input" placeholder="Filter by Restaurant ID" />
+        <select id="ordersFilterStatus" class="admin-input">
+          <option value="">All Statuses</option>
+          <option value="CREATED">CREATED</option>
+          <option value="CONFIRMED">CONFIRMED</option>
+          <option value="PICKED_UP">PICKED_UP</option>
+          <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY</option>
+          <option value="DELIVERED">DELIVERED</option>
+          <option value="CANCELLED">CANCELLED</option>
+        </select>
+        <input id="ordersFilterFrom" class="admin-input" type="date" />
+        <input id="ordersFilterTo" class="admin-input" type="date" />
+        <button class="admin-mini-btn" onclick="loadOrdersAdmin()">Apply Filters</button>
+        <button class="admin-mini-btn" onclick="resetOrdersFilters()">Reset</button>
+      </div>
+      <div class="admin-orders-table-wrapper">
+        <table class="admin-orders-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>User ID</th>
+              <th>User Email</th>
+              <th>Restaurant</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>Ordered At</th>
+              <th>Delivered At</th>
+            </tr>
+          </thead>
+          <tbody id="adminOrdersTableBody">
+            <tr>
+              <td colspan="8" class="muted-text">Loading orders...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
   <script src="navbar.js"></script>
   <script>
@@ -50,6 +92,7 @@
   <script>
     loadRestaurants();
     loadComplaintsAdmin();
+    loadOrdersAdmin();
   </script>
 </body>
 

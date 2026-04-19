@@ -23,6 +23,8 @@ public class OrderResponse {
     private Double totalAmount;
     private LocalDateTime orderedAt;
     private LocalDateTime deliveredAt;
+    private Long userId;
+    private String userEmail;
     
     public OrderResponse(Order order) {
         this.id = order.getId();
@@ -32,6 +34,8 @@ public class OrderResponse {
         this.totalAmount = order.getTotalAmount();
         this.orderedAt = order.getOrderedAt();
         this.deliveredAt = order.getDeliveredAt();
+        this.userId=order.getUserId();
+        this.userEmail=order.getUserEmail();
     }
 
 }

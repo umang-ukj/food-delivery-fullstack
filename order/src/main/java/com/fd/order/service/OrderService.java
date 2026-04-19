@@ -188,4 +188,9 @@ public class OrderService {
 
         return complaintRepository.save(complaint);
     }
+    
+    public List<Order> getAllOrdersForAdmin(Long userId, String restaurantId, OrderStatus status, LocalDateTime orderedFrom, LocalDateTime orderedTo) {
+        return repository.findAllForAdmin(userId, restaurantId, status, orderedFrom, orderedTo);
+}
+
 }
